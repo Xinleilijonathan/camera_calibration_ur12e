@@ -25,9 +25,14 @@ next, and records the robot's *actual* measured state when you press the record 
 | 15–19 | Preliminary solve, scoring, best-20 selection, final solve, validation | done |
 | 20–21 | Replay dry-run, docs/tests | done |
 
-Every script is implemented and covered by tests (458 of them, all passing, none of which
-open a camera or a robot). What has **not** happened is a run against real hardware: the
-whole pipeline has so far only been exercised against synthetic datasets and URSim.
+Every script is implemented and covered by tests — 462 of them, all passing on both the
+development laptop and the robot PC, none of which open a camera or a robot.
+
+**Hardware status.** The three cameras have been enumerated and opened for real on
+`ur12e-flexlab`, at their configured resolutions and frame rates, through the project's
+own code path. What has **not** happened is a calibration run: no board has been measured,
+no intrinsics collected, and the robot has not been driven by this software at all. The
+solve and selection stages remain exercised only against synthetic datasets and URSim.
 
 Motion code now exists — `jog_controller.py`, `robot_interface.enable_motion()` and the
 teleop scripts can command the arm. It is inert until you change `config/safety.yaml`
@@ -74,6 +79,15 @@ Most of it is already present. Verify:
 
 ```bash
 .venv/bin/python -c "import cv2, numpy, scipy, yaml, pygame, rtde_receive; print('ok')"
+```
+
+**OpenCV must stay on 4.x.** OpenCV 5.0 removed `cv2.calibrateHandEye` outright, with no
+replacement anywhere in the module tree. The `CALIB_HAND_EYE_*` constants still exist, so
+nothing complains until the solve raises `AttributeError` — after you have collected a
+full dataset. `requirements.txt` pins `<5` for this reason; do not relax it. Check with:
+
+```bash
+.venv/bin/python -c "import cv2; print(cv2.__version__, hasattr(cv2,'calibrateHandEye'))"
 ```
 
 ### Which machine does this run on?
@@ -127,8 +141,9 @@ side of the cell. That means the **board is in a different place** for the two s
 | `camera_2`, `camera_3` | `eye_to_hand` | **bolted to the robot flange** | camera → robot base |
 
 So you will physically re-rig the board between the `camera_1` session and the
-`camera_2`/`camera_3` sessions. `camera_2` and `camera_3` can share one board mounting,
-and if both see the board at once, one arm session.
+`camera_2`/`camera_3` sessions. `camera_2` and `camera_3` can share one board mounting —
+but **not** one arm session on the current cabling, because they cannot stream
+simultaneously (see the hardware table below).
 
 The mode is a property of the **camera**, set as `handeye_mode` on each camera in
 `config/cameras.yaml` (falling back to `calibration.yaml` → `handeye.mode`). It is never
@@ -138,9 +153,175 @@ geometrically meaningless.
 The D405 also has a much shorter working range than the D435 — roughly 7–50 cm against
 30 cm and up. Place the board accordingly for each session.
 
+### The actual hardware, as verified on `ur12e-flexlab`
+
+Enumerated and opened successfully on 2026-09-15; serials are already in `cameras.yaml`.
+
+| Slot | Model | Serial | Firmware | USB link | Configured |
+|---|---|---|---|---|---|
+| `camera_1` | D405 | `260522273667` | 5.15.1.55 | 3.2 | 1280×720 @ **30** |
+| `camera_2` | D435IF | `327122073926` | 5.17.0.10 | **2.1** | 1280×720 @ **15** |
+| `camera_3` | D435IF | `327122075735` | 5.17.0.10 | **2.1** | 1280×720 @ **15** |
+
+**Why the D435s are at 15 fps.** Both negotiate a USB 2.1 link, where librealsense offers
+1280×720 only at 15/10/6 Hz. One 720p RGB8 stream is already ~41 MB/s, at USB 2.0's
+practical ceiling — that is the cause, not a firmware quirk. Asking for 30 fails to open.
+
+This is harmless for calibration, where every capture is a static frame of a stationary
+board, so the rates above are what the config ships. Two consequences to remember:
+
+* the two D435s **cannot stream at the same time** — one saturates the bus alone;
+* `camera_3` additionally sits behind a hub (`sysfs 3-13.4`), sharing that same bus.
+
+To lift the limit, move both D435s to USB 3 ports with USB 3 cables (the bundled short
+cable is the usual culprit), then raise `fps` to 30 in `cameras.yaml`.
+
+**Still unverified: which physical D435 is `camera_2` and which is `camera_3`.** The
+serials are correct but were assigned to the two slots arbitrarily. Resolve this before
+collecting, because swapping them yields two calibrations that each pass every
+reprojection and hold-out check while describing the wrong camera. Open one in
+`realsense-viewer`, cover its lens, see which stream goes dark, then write the side into
+that camera's `description` and delete the `REPLACE` marker.
+
 ---
 
-## The complete process
+## Where to run it, and how to get there
+
+Everything runs **on the robot PC**, `ur12e-flexlab` (`10.245.129.12`, user
+`robot2026fall`), because the scripts open the cameras and the RTDE connection from one
+process. The development laptop has no RealSense attached; use it for editing and tests.
+
+```bash
+ssh robot2026fall@10.245.129.12
+cd ~/camera_calibration
+```
+
+The checkout there is complete, with its own `.venv` (Python 3.12.3, OpenCV 4.14,
+pyrealsense2 2.58.4, ur_rtde 1.6.5) and the full suite passing. To push edits from the
+laptop:
+
+```bash
+rsync -az --exclude '.venv/' --exclude '__pycache__/' --exclude 'logs/' --exclude '.git/' ~/camera_calibration/ robot2026fall@10.245.129.12:~/camera_calibration/
+```
+
+Confirm the environment whenever you return to it:
+
+```bash
+cd ~/camera_calibration && .venv/bin/python scripts/list_cameras.py
+```
+
+Three cameras, three distinct serials, all `usable: YES`. Anything else — especially a
+count in the double digits — means the RealSense SDK failed and you are seeing raw v4l2
+nodes; fix that before going further.
+
+---
+
+## What must happen before the first run
+
+Four gates are `false` on purpose and no script will proceed past the ones it needs.
+Two of them require a physical measurement, which is the real work here.
+
+| # | Gate | Blocks | What it actually costs |
+|---|---|---|---|
+| 1 | `calibration.yaml` → `apriltag_grid` geometry + `verified_by_user` | **everything** | caliper on the printed board |
+| 2 | Which D435 is `camera_2` vs `camera_3` | correctness, silently | two minutes with `realsense-viewer` |
+| 3 | `calibration.yaml` → `handeye.verified_by_user` | the solve | confirm the modes match the rig |
+| 4 | `safety.yaml` → `workspace` + `joint_limits` `verified_by_user` | **motion only** | measure your cell |
+
+Gate 4 does not block data collection. Use `--read-only` and move the arm by hand.
+
+### Gate 1 in detail — the one that silently ruins everything
+
+Measure the printed board with a caliper and fill in `config/calibration.yaml`:
+
+```yaml
+apriltag_grid:
+  rows: 6                  # count them
+  columns: 6
+  tag_size_m: 0.030        # side of the BLACK SQUARE, in metres
+  tag_spacing_m: 0.009     # WHITE GAP between neighbouring black squares
+  verified_by_user: true   # only after measuring
+```
+
+`tag_size_m` is the outer edge of the black border — exactly where corners are detected.
+Not the quiet zone, not the cell pitch. An error here scales your entire hand-eye
+translation by the same factor **without** raising reprojection error, so nothing
+downstream can catch it. Do not trust the PDF the board came from; printer scaling is
+routinely off by a percent or two.
+
+---
+
+## Running the calibration
+
+Per camera, start to finish. Everything below is on the robot PC, in `~/camera_calibration`.
+
+### Phase A — intrinsics (no robot involved)
+
+```bash
+.venv/bin/python scripts/preview_apriltag.py --camera camera_1
+```
+
+Check the board detects as **VALID**, and note what `Sharpness` reads on a good frame —
+set `detection.minimum_sharpness` from that rather than the shipped guess of 40.0. Needs
+a display; if you are over SSH, use `ssh -X` or work at the machine.
+
+```bash
+.venv/bin/python scripts/collect_intrinsics.py --camera camera_1
+.venv/bin/python scripts/solve_intrinsics.py   --camera camera_1
+```
+
+`SPACE` records, `U` undoes, `Q` finishes. Aim for 20–40 views; vary position across the
+frame, tilt, rotation and distance. Only valid *and novel* views count. Check the
+resulting RMS in `data/camera_1/intrinsics/result.yaml` — under ~0.5 px is healthy.
+
+Repeat for `camera_2` and `camera_3`. Intrinsics are never shared between cameras.
+
+### Phase B — waypoints (robot involved, still no motion commands)
+
+Re-rig the board first if needed: **on the table** for `camera_1`, **on the flange** for
+`camera_2`/`camera_3`.
+
+```bash
+.venv/bin/python scripts/collect_waypoints.py --camera camera_1 --target-count 30 --read-only
+```
+
+`--read-only` means the software never commands the arm; you jog it by hand in freedrive
+and press `ENTER` to record. This is the recommended first dataset — it needs neither
+gate 4 nor any trust in the motion path.
+
+Move the distal joints first — Wrist 3 → Wrist 2 → Wrist 1 → Elbow → Shoulder → Base —
+and watch the live diversity display for which axis is weak. Aim for several centimetres
+of translation and ±5° to ±15° of rotation spread. Thirty near-identical poses fit
+beautifully and generalise terribly.
+
+A record is all-or-nothing: the board must be valid, the arm verified stationary across
+consecutive velocity samples, the settle delay elapsed, and the board still valid in the
+frame actually saved. Any failure writes nothing and does not advance the count.
+
+### Phase C — solve and verify
+
+```bash
+.venv/bin/python scripts/analyze_waypoints.py      --camera camera_1
+.venv/bin/python scripts/select_best_waypoints.py  --camera camera_1 --count 20
+.venv/bin/python scripts/solve_handeye.py          --camera camera_1 --selection best20
+.venv/bin/python scripts/verify_calibration.py     --camera camera_1
+```
+
+Read `analyze_waypoints` output carefully: it cross-checks Tsai, Park, Horaud, Andreff
+and Daniilidis. Close agreement is evidence the data is sound; wide disagreement means it
+is not, whatever the reprojection error says. Then read the hold-out result from
+`verify_calibration` — the 10 unselected waypoints are the only independent check you get.
+
+Then repeat all three phases for `camera_2` and `camera_3`.
+
+---
+
+## Reference: the complete process, step by step
+
+The section above is what to type. This one is the same pipeline with the reasoning
+attached — why each step exists, what it writes, and how it fails. Read it once before
+your first run, then use the short version.
+
 
 ### STEP 1 — Connect the robot (or URSim)
 
