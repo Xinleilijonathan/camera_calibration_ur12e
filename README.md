@@ -187,12 +187,16 @@ that camera's `description` and delete the `REPLACE` marker.
 
 ## Where to run it, and how to get there
 
-Everything runs **on the robot PC**, `ur12e-flexlab` (`10.245.129.12`, user
-`robot2026fall`), because the scripts open the cameras and the RTDE connection from one
-process. The development laptop has no RealSense attached; use it for editing and tests.
+Everything runs **on the robot PC** (`ur12e-flexlab`), because the scripts open the
+cameras and the RTDE connection from one process. The development laptop has no
+RealSense attached; use it for editing and tests.
+
+This repository is public, so the host's address and login are deliberately not written
+down here. Substitute your own, or better, put them in your `~/.ssh/config` as a named
+host and keep them off the page entirely:
 
 ```bash
-ssh robot2026fall@10.245.129.12
+ssh "$ROBOT_PC"            # e.g. Host robot-pc in ~/.ssh/config
 cd ~/camera_calibration
 ```
 
@@ -201,7 +205,7 @@ pyrealsense2 2.58.4, ur_rtde 1.6.5) and the full suite passing. To push edits fr
 laptop:
 
 ```bash
-rsync -az --exclude '.venv/' --exclude '__pycache__/' --exclude 'logs/' --exclude '.git/' ~/camera_calibration/ robot2026fall@10.245.129.12:~/camera_calibration/
+rsync -az --exclude '.venv/' --exclude '__pycache__/' --exclude 'logs/' --exclude '.git/' ~/camera_calibration/ "$ROBOT_PC":~/camera_calibration/
 ```
 
 Confirm the environment whenever you return to it:
