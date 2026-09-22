@@ -1,0 +1,186 @@
+# ===========================================================================
+# safety.yaml -- UR12e motion envelope for calibration jogging
+#
+# READ THIS BEFORE CHANGING ANYTHING HERE.
+#
+# These are SOFTWARE COMMAND LIMITS in this application only. They are NOT a
+# substitute for, and must never be used to work around, the UR controller's
+# own safety configuration (safety planes, joint limits, tool/payload setup,
+# reduced mode, protective stop, emergency stop). Configure those on the
+# teach pendant. This file only makes THIS program refuse to send commands it
+# considers out of bounds.
+#
+# The existing ~/leader_arm project documents that the physical UR12e does not
+# yet have commissioned safety limits, collision checking, tool/payload config
+# or an e-stop interlock. Until that is done, keep `allow_physical_robot:
+# false` and test against URSim.
+# ===========================================================================
+
+connection:
+  # URSim on this machine. Change ONLY after physical commissioning.
+  robot_ip: "127.0.0.1"
+  rtde_frequency: 125.0
+  connect_timeout_s: 5.0
+
+  # MASTER INTERLOCK.
+  # While false, the robot interface refuses to connect to any non-loopback
+  # address. Flipping this to true is the single explicit act that enables
+  # talking to the real UR12e -- it is deliberately not a command-line flag.
+  allow_physical_robot: false
+
+  # Second interlock, independent of the first: while false, NO module in this
+  # project is permitted to issue any motion command at all, to URSim or to
+  # hardware. Read-only state polling still works.
+  allow_motion: false
+
+# ---------------------------------------------------------------------------
+# Motion parameters. Deliberately slow. Calibration is not a race, and every
+# millimetre of overshoot is a millimetre of calibration error.
+# ---------------------------------------------------------------------------
+motion:
+  # moveJ: joint speed / acceleration
+  joint_speed_rad_s: 0.15
+  joint_acceleration_rad_s2: 0.30
+
+  # moveL: TCP speed / acceleration
+  tcp_speed_m_s: 0.02
+  tcp_acceleration_m_s2: 0.05
+
+  # Refuse any single commanded step larger than this. A jog is a nudge.
+  max_joint_step_rad: 0.175            # 10 deg
+  max_tcp_translation_step_m: 0.02     # 20 mm
+  max_tcp_rotation_step_rad: 0.175     # 10 deg
+
+  # Refuse a replay transition whose largest joint delta exceeds this without
+  # explicit per-move confirmation.
+  max_replay_joint_delta_rad: 0.524    # 30 deg
+
+  # RTDE communication watchdog. If this program stops talking to the
+  # controller for longer than this, the controller stops the motion itself.
+  watchdog_timeout_s: 0.5
+
+  # Gamepad deadman: motion is permitted only while the deadman is held AND
+  # a fresh gamepad sample arrived within this window.
+  deadman_max_sample_age_s: 0.15
+
+# ---------------------------------------------------------------------------
+# Cartesian workspace box, in the ROBOT BASE frame, metres.
+# Any commanded TCP target outside this box is rejected before being sent.
+#
+# !!!! THESE ARE PLACEHOLDERS. Jog the robot by hand (pendant freedrive) to
+# the corners of the region you actually want to work in, read off the TCP
+# pose, and set real numbers here with margin. !!!!
+# ---------------------------------------------------------------------------
+workspace:
+  verified_by_user: false
+
+  x_min: -0.60
+  x_max:  0.60
+  y_min: -0.60
+  y_max:  0.60
+  z_min:  0.10      # keep the tool well above the table
+  z_max:  0.90
+
+  # Extra guard: refuse targets closer than this to the base Z axis, where the
+  # arm can fold onto itself and wrist singularities live.
+  min_radius_from_base_m: 0.20
+
+# ---------------------------------------------------------------------------
+# Joint limits, radians. UR joints are mechanically +/-2*pi; these are much
+# tighter working limits for calibration, to keep the arm in a sane posture.
+# Order: base, shoulder, elbow, wrist_1, wrist_2, wrist_3.
+# ---------------------------------------------------------------------------
+joint_limits:
+  verified_by_user: false
+
+  base:     { min: -3.14159, max:  3.14159 }
+  shoulder: { min: -3.14159, max:  0.00000 }   # keep shoulder above horizontal
+  elbow:    { min: -2.79253, max:  2.79253 }   # +/-160 deg
+  wrist_1:  { min: -3.14159, max:  3.14159 }
+  wrist_2:  { min: -3.14159, max:  3.14159 }
+  wrist_3:  { min: -6.28319, max:  6.28319 }
+
+  # Additionally, never move further than this from the session's calibration
+  # centre pose. This is the strongest practical guard during jogging: it
+  # bounds the whole session to a small neighbourhood of a pose you chose and
+  # verified by eye.
+  max_deviation_from_center:
+    base:     0.1745    # 10 deg
+    shoulder: 0.1745    # 10 deg
+    elbow:    0.2618    # 15 deg
+    wrist_1:  0.5236    # 30 deg
+    wrist_2:  0.5236    # 30 deg
+    wrist_3:  0.7854    # 45 deg
+
+# ---------------------------------------------------------------------------
+# Jog step sizes.
+# ---------------------------------------------------------------------------
+jog:
+  # Cartesian steps (section G1).
+  cartesian:
+    translation_m:
+      fine:   0.001     # 1 mm
+      normal: 0.005     # 5 mm
+      coarse: 0.010     # 10 mm
+    rotation_deg:
+      fine:   1.0
+      normal: 3.0
+      coarse: 5.0
+
+  # Per-joint steps in DEGREES (sections G2, I1).
+  # Distal joints get larger steps; proximal joints get the smallest, because
+  # a degree at the base sweeps the whole arm.
+  joint_deg:
+    base:     { fine: 0.5, normal: 1.0, coarse: 2.0 }
+    shoulder: { fine: 0.5, normal: 1.0, coarse: 2.0 }
+    elbow:    { fine: 0.5, normal: 1.5, coarse: 3.0 }
+    wrist_1:  { fine: 0.5, normal: 2.0, coarse: 5.0 }
+    wrist_2:  { fine: 0.5, normal: 2.0, coarse: 5.0 }
+    wrist_3:  { fine: 0.5, normal: 2.0, coarse: 5.0 }
+
+  default_mode: normal          # fine | normal | coarse
+  default_jog_space: joint      # joint | cartesian
+
+# ---------------------------------------------------------------------------
+# Gamepad.
+# ---------------------------------------------------------------------------
+gamepad:
+  deadzone: 0.15                # ignore stick magnitude below this
+  response_curve_exponent: 2.0  # >1 = fine control near centre
+  max_command_rate_hz: 5.0      # cap on jog commands per second
+  require_deadman: true         # NEVER set false
+
+  # Xbox-style button/axis indices. These vary between kernel drivers (xpad vs
+  # xone) and between wired and Bluetooth connections, so they are configurable.
+  # Run  scripts/gamepad_teleop_calibration.py --probe  to see live indices for
+  # YOUR controller, then correct these numbers.
+  mapping:
+    deadman_button: 4           # LB -- must be HELD for any motion
+    record_button: 0            # A
+    cancel_button: 1            # B
+    fine_button: 2              # X
+    coarse_button: 3            # Y
+    exit_button: 7              # START
+    toggle_space_button: 6      # BACK/SELECT
+    axis_translate_x: 0         # left stick horizontal
+    axis_translate_y: 1         # left stick vertical
+    axis_rotate_roll: 3         # right stick horizontal
+    axis_rotate_pitch: 4        # right stick vertical
+    axis_trigger_left: 2        # LT -> -Z
+    axis_trigger_right: 5       # RT -> +Z
+    # Some drivers report triggers resting at -1 and pressed at +1; others
+    # rest at 0. Set false if your triggers rest at 0.
+    triggers_rest_at_minus_one: true
+    invert_translate_y: true    # sticks report up as negative
+    invert_rotate_pitch: true
+
+# ---------------------------------------------------------------------------
+# Preflight checks required before ANY motion is permitted.
+# ---------------------------------------------------------------------------
+preflight:
+  require_robot_mode_running: true      # getRobotMode() == 7
+  require_safety_mode_normal: true      # getSafetyMode() in (NORMAL, REDUCED)
+  require_no_protective_stop: true
+  require_no_emergency_stop: true
+  require_stationary_at_start: true
+  require_user_confirmation: true       # typed confirmation, not a keypress

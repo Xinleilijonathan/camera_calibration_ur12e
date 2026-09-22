@@ -1,0 +1,128 @@
+# ===========================================================================
+# cameras.yaml -- physical camera identity and mounting
+#
+# THIS RIG (as described by the operator):
+#
+#   camera_1  Intel RealSense D405   mounted on the ROBOT WRIST / end effector
+#                                    -> EYE-IN-HAND
+#   camera_2  Intel RealSense D435   fixed at the side of the workcell
+#                                    -> EYE-TO-HAND
+#   camera_3  Intel RealSense D435   fixed at the side of the workcell
+#                                    -> EYE-TO-HAND
+#
+# !!!! THE TWO MOUNTINGS NEED DIFFERENT PHYSICAL SETUPS !!!!
+#
+#   camera_1 (eye_in_hand):  the AprilTag board sits FIXED on the table.
+#                            The camera moves with the arm and looks at it.
+#
+#   camera_2 / camera_3 (eye_to_hand):
+#                            the AprilTag board is BOLTED TO THE ROBOT
+#                            (flange / end effector). The camera is fixed and
+#                            watches the board move.
+#
+# So you will physically re-rig the board between the camera_1 session and the
+# camera_2 / camera_3 sessions. camera_2 and camera_3 can share one board
+# mounting and, if both see the board at once, one arm session.
+#
+# Cameras are addressed by LOGICAL NAME and resolved to hardware by SERIAL
+# NUMBER -- never by /dev/videoN index, because those are reassigned on every
+# reboot and replug.
+#
+# HOW TO FILL THIS IN
+#   1. Plug in all three cameras.
+#   2. .venv/bin/python scripts/list_cameras.py
+#   3. .venv/bin/python scripts/list_cameras.py --emit-yaml
+#      then paste the generated serials below.
+#
+# !!!! UNVERIFIED: WHICH D435 IS camera_2 AND WHICH IS camera_3 !!!!
+#
+# The three serials below were read off the hardware on ur12e-flexlab and are
+# correct. But the two D435IF serials were assigned to camera_2 and camera_3
+# ARBITRARILY -- nobody has yet confirmed which physical camera, on which side
+# of the cell, carries which serial.
+#
+# Fix it before collecting anything, because swapping camera_2 and camera_3
+# yields two calibrations that are each internally consistent, pass every
+# reprojection and hold-out check, and are attached to the wrong cameras.
+# No downstream test can detect it.
+#
+# To resolve: open one in realsense-viewer, cover its lens by hand, see which
+# stream goes dark, then write the side into that camera's `description` and
+# delete the REPLACE marker. The sysfs paths noted per camera below also
+# distinguish them if you know which physical port each cable occupies.
+#
+# Note the D405 has a much shorter working range than the D435 (roughly
+# 7-50 cm vs 30 cm+). Place the board accordingly for each session.
+# ===========================================================================
+
+cameras:
+
+  camera_1:
+    name: camera_1
+    backend: realsense
+    serial: "260522273667"          # verified on ur12e-flexlab 2026-09-15
+    model: D405
+    width: 1280
+    height: 720
+    fps: 30                         # USB 3.2 link; 720p30 confirmed available
+    # Per-camera override of calibration.yaml -> handeye.mode.
+    handeye_mode: eye_in_hand
+    description: "D405 on the robot wrist / end effector"
+
+  camera_2:
+    name: camera_2
+    backend: realsense
+    serial: "327122073926"          # verified on ur12e-flexlab 2026-09-15
+    model: D435IF
+    width: 1280
+    height: 720
+    # 15, NOT 30. This camera negotiates a USB 2.1 link, where librealsense
+    # offers 1280x720 only at 15/10/6 Hz -- one 720p RGB8 stream is already
+    # ~41 MB/s, at USB 2.0's practical ceiling. Asking for 30 fails to open.
+    # Harmless for calibration (every capture is a static frame). Raise to 30
+    # only after this camera is moved to a USB 3 port with a USB 3 cable.
+    fps: 15
+    handeye_mode: eye_to_hand
+    description: "D435IF fixed at the side of the workcell; USB 2.1, sysfs 3-12 -> /dev/video12 (REPLACE: which side?)"
+
+  camera_3:
+    name: camera_3
+    backend: realsense
+    serial: "327122075735"          # verified on ur12e-flexlab 2026-09-15
+    model: D435IF
+    width: 1280
+    height: 720
+    # See camera_2. Same USB 2.1 limit, and this one sits BEHIND A HUB
+    # (sysfs 3-13.4), sharing that bus. Do not try to stream it at the same
+    # time as camera_2 -- one 720p stream saturates the bus on its own.
+    fps: 15
+    handeye_mode: eye_to_hand
+    description: "D435IF fixed at the side of the workcell; USB 2.1 behind hub, sysfs 3-13.4 -> /dev/video6 (REPLACE: which side?)"
+
+# ---------------------------------------------------------------------------
+# Capture behaviour shared by all cameras.
+# ---------------------------------------------------------------------------
+capture:
+  # Frames pulled and discarded after opening, so auto-exposure and
+  # auto-white-balance converge before anything is measured.
+  warmup_frames: 15
+
+  # Frames pulled and discarded immediately before a calibration capture, so a
+  # saved image can never be a stale buffered frame from before the arm moved.
+  flush_frames: 5
+
+  read_timeout_s: 2.0
+
+  # Fixed exposure gives sharper, more repeatable corners, but needs steady
+  # lighting. Worth enabling once your lighting is settled.
+  disable_auto_exposure: false
+
+  # RealSense only: emitter/projector settings.
+  #   The IR dot projector is for depth and is NOT needed here -- we only use
+  #   the colour stream. On the D405, whose colour and depth share a sensor,
+  #   the projected dot pattern lands ON the printed tags and degrades corner
+  #   detection, so it is disabled by default.
+  realsense:
+    disable_emitter: true
+    # Ask the sensor for a high-accuracy colour preset where supported.
+    auto_exposure_priority: false

@@ -1,0 +1,17 @@
+# Virtual environment
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+
+# Collected calibration data is large and machine-specific.
+# Keep the directory skeleton (.gitkeep) but not the captures.
+data/**/images/*.png
+data/**/images/*.jpg
+data/**/*.log
+
+# Logs
+logs/

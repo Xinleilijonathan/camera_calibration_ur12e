@@ -1,0 +1,33 @@
+# ---------------------------------------------------------------------------
+# camera_calibration requirements
+#
+# Versions below are the ones verified present in .venv on this machine.
+# Install with:
+#     .venv/bin/python -m pip install -r requirements.txt
+# ---------------------------------------------------------------------------
+
+# --- Already installed in .venv (do not need reinstalling) -----------------
+numpy>=2.0,<3
+scipy>=1.11
+PyYAML>=6.0
+# MUST stay on 4.x. OpenCV 5.0 REMOVED cv2.calibrateHandEye outright -- the
+# CALIB_HAND_EYE_* constants still exist, so the break is not obvious until the
+# solve raises AttributeError. There is no replacement anywhere in the cv2
+# module tree, so the upper bound is load-bearing, not caution.
+# Also needs cv2.aruco, which is contrib-only. 4.11.0.86 verified.
+opencv-contrib-python>=4.8,<5
+ur_rtde>=1.5                    # RTDEControlInterface / RTDEReceiveInterface
+pygame>=2.5                     # gamepad / joystick input
+
+# --- RealSense backend -----------------------------------------------------
+# Not optional on this rig: all three cameras are RealSense (a D405 and two
+# D435s). The PyPI wheel is installed in .venv (2.58.4 verified) and ships its
+# own bundled librealsense, which SHADOWS the source build in ~/librealsense
+# (binaries in /usr/local). That is fine as long as only one of them is in
+# play. If you hit a firmware or version mismatch against the source build,
+# uninstall the wheel and build the bindings from that tree instead:
+#   cmake -DBUILD_PYTHON_BINDINGS=ON -DPYTHON_EXECUTABLE=$(pwd)/.venv/bin/python
+pyrealsense2>=2.54
+
+# --- Test / dev only -------------------------------------------------------
+pytest>=7.0

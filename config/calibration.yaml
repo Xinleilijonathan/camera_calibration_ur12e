@@ -1,0 +1,235 @@
+# ===========================================================================
+# calibration.yaml -- board geometry, detection, collection, selection, hand-eye
+#
+# NOTHING about the board is hard-coded in the source. Everything is here.
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# AprilTag grid board
+#
+# !!!! MEASURE YOUR PRINTED BOARD. DO NOT GUESS. !!!!
+#
+# tag_size_m is the side length of the BLACK SQUARE of one tag -- i.e. the
+# outer edge of the black border, which is exactly what the detected corners
+# lie on. It is NOT the white quiet-zone and NOT the full cell pitch.
+#
+# tag_spacing_m is the WHITE GAP between two neighbouring black squares.
+#   cell pitch = tag_size_m + tag_spacing_m
+#
+# If your board is specified Kalibr-style with a spacing RATIO r, then:
+#   tag_spacing_m = r * tag_size_m
+#
+# An error in tag_size_m scales your ENTIRE hand-eye translation by the same
+# factor and will not show up as a large reprojection error. This is the
+# single most common way to silently ruin a calibration, which is why
+# `verified_by_user` below must be set to true by hand before any script is
+# allowed to produce metric results.
+# ---------------------------------------------------------------------------
+apriltag_grid:
+  tag_family: tag36h11            # tag36h11 | tag36h10 | tag25h9 | tag16h5
+  rows: 6                         # number of tags vertically      (REPLACE)
+  columns: 6                      # number of tags horizontally    (REPLACE)
+  tag_size_m: 0.030               # black square side, metres      (REPLACE)
+  tag_spacing_m: 0.009            # white gap between tags, metres (REPLACE)
+  first_tag_id: 0                 # ID of the top-left tag
+
+  # Set to true ONLY after you have physically measured the four values above
+  # with a ruler/caliper. Scripts that emit metric results refuse to run while
+  # this is false.
+  verified_by_user: false
+
+# ---------------------------------------------------------------------------
+# What counts as a usable detection of the board.
+# ---------------------------------------------------------------------------
+detection:
+  # Sub-pixel corner refinement. "apriltag" is the most accurate for AprilTag
+  # families and is what you want for calibration. Others: subpix, contour, none.
+  corner_refinement: apriltag
+  corner_refine_win_size: 5
+  corner_refine_max_iterations: 30
+  corner_refine_min_accuracy: 0.05
+
+  # Minimum acceptance thresholds for a frame to be recordable.
+  minimum_tags_required: 12
+  minimum_corners_required: 48        # 4 corners per tag
+
+  # Reject the frame if any detected corner is closer than this to the image
+  # edge -- a clipped board biases the pose badly.
+  minimum_border_margin_px: 12.0
+
+  # Fraction of the FULL board (including tags that were not detected) allowed
+  # to fall outside the image. 0.0 demands the whole board be in frame, which
+  # is what you want for accuracy. Note this is a separate, stronger check than
+  # minimum_border_margin_px: tags that leave the frame are simply not
+  # detected, so the remaining ones can look comfortably inside the image.
+  maximum_clipped_fraction: 0.0
+
+  # Reject the frame if the board occupies too little of the image (too far
+  # away -> corner noise dominates) or is implausibly large.
+  minimum_board_area_fraction: 0.02
+  maximum_board_area_fraction: 0.90
+
+  # Motion-blur guard: variance of the Laplacian inside the board region.
+  # Lower = blurrier. Tune once against your own camera/lighting; the value
+  # printed in the preview overlay tells you what your sharp frames score.
+  minimum_sharpness: 40.0
+
+  # Reject the frame if the PnP fit to the board is worse than this.
+  maximum_pnp_reprojection_px: 1.5
+
+# ---------------------------------------------------------------------------
+# Intrinsic calibration (per camera, independent -- never shared).
+# ---------------------------------------------------------------------------
+intrinsics:
+  minimum_observations: 20
+  target_observations: 30
+  maximum_observations: 40
+
+  # Reject the whole intrinsic solve if RMS exceeds this.
+  maximum_reprojection_error: 1.0
+
+  # Distortion model.
+  #   standard  : k1 k2 p1 p2 k3           (5 coefficients, default)
+  #   rational  : + k4 k5 k6               (8, for wide FOV lenses)
+  #   thin_prism: + s1..s4
+  #   fisheye   : not supported yet
+  distortion_model: standard
+  fix_aspect_ratio: false
+  zero_tangential_distortion: false
+
+  # Diversity requirements so you do not collect 30 near-identical images.
+  # The image is divided into a 3x3 grid of cells; the board centre must land
+  # in at least this many distinct cells across the whole set.
+  diversity:
+    image_cells: 3                       # 3 -> 3x3 = 9 cells
+    minimum_cells_covered: 6
+    minimum_tilt_deg: 20.0               # at least one view tilted this much
+    minimum_distinct_tilts: 6
+    minimum_scale_ratio: 1.6             # far/near board-area ratio required
+    # A new observation must differ from every stored one by at least ONE of:
+    minimum_new_translation_m: 0.020
+    minimum_new_rotation_deg: 5.0
+
+# ---------------------------------------------------------------------------
+# Hand-eye waypoint collection.
+# ---------------------------------------------------------------------------
+waypoint_collection:
+  target_count: 30                       # collect this many VALID waypoints
+  final_count: 20                        # select this many for final solve
+
+  # --- Stationary verification (section Q) ---
+  stationary_velocity_threshold: 0.005   # rad/s, max over all joints
+  stationary_consecutive_samples: 5
+  stationary_sample_interval_s: 0.02
+  stationary_timeout_s: 5.0
+  settle_time_s: 0.5                     # extra wait for vibration + exposure
+
+  # --- Live "is this a useful new pose?" thresholds (section M) ---
+  # A candidate is a GOOD NEW POSE if it differs from its nearest recorded
+  # neighbour by at least ONE of these (not both -- see section X4).
+  minimum_translation_diversity_mm: 15.0
+  minimum_rotation_diversity_deg: 3.0
+
+  # Warn (but still allow) when the pose is only marginally new.
+  marginal_translation_diversity_mm: 25.0
+  marginal_rotation_diversity_deg: 5.0
+
+  # --- Guidance staging (section K). Guidance only; never commands motion. ---
+  stages:
+    - name: "WRIST ONLY"
+      up_to_waypoint: 10
+      preferred_joints: [wrist_3, wrist_2, wrist_1]
+      note: "Orientation diversity with minimal whole-arm motion."
+    - name: "WRIST + SMALL ELBOW"
+      up_to_waypoint: 18
+      preferred_joints: [wrist_3, wrist_2, wrist_1, elbow]
+      note: "Introduce small elbow changes, roughly +/-2-4 deg."
+    - name: "WRIST + ELBOW + SMALL SHOULDER"
+      up_to_waypoint: 25
+      preferred_joints: [wrist_3, wrist_2, wrist_1, elbow, shoulder]
+      note: "Add small shoulder changes, roughly +/-2-3 deg."
+    - name: "FILL MISSING DIVERSITY"
+      up_to_waypoint: 30
+      preferred_joints: [wrist_3, wrist_2, wrist_1, elbow, shoulder, base]
+      note: "Target whichever axis is weakest. Base only if it truly helps."
+
+  # Per-axis diversity is rated GOOD / MEDIUM / LOW against these spans
+  # (range of the recorded set along each axis).
+  diversity_rating:
+    translation_good_mm: 60.0
+    translation_medium_mm: 25.0
+    rotation_good_deg: 20.0
+    rotation_medium_deg: 8.0
+
+# ---------------------------------------------------------------------------
+# 30 -> best 20 selection (sections X, X1-X4).
+# ---------------------------------------------------------------------------
+selection:
+  mode: best_error_with_diversity
+
+  # Lower combined score = better. Each term is min-max normalised across the
+  # candidate set BEFORE summing, so pixels/mm/degrees are never added raw.
+  weights:
+    reprojection_rms: 0.50
+    handeye_translation: 0.25
+    handeye_rotation: 0.25
+
+  # Hard outlier rejection, applied BEFORE ranking (section X2).
+  # Observations failing these are marked with a reason -- never deleted.
+  outlier_limits:
+    max_reprojection_rms_px: 2.0
+    max_translation_residual_mm: 15.0
+    max_rotation_residual_deg: 3.0
+    min_tags: 12
+    min_corners: 48
+    min_border_margin_px: 8.0
+    max_pnp_reprojection_px: 2.0
+    # Also drop anything beyond this many MADs from the median score.
+    robust_mad_multiplier: 3.5
+
+  # Greedy diversity-preserving acceptance (section X3/X4).
+  # A candidate is accepted if it beats EITHER threshold vs. everything
+  # already selected.
+  diversity_thresholds:
+    minimum_translation_separation_mm: 15.0
+    minimum_rotation_separation_deg: 3.0
+  # If fewer than final_count survive at full strictness, relax the thresholds
+  # by this factor and retry, down to relax_min_factor.
+  relax_factor: 0.7
+  relax_min_factor: 0.2
+
+# ---------------------------------------------------------------------------
+# Hand-eye configuration (section AE). NOT silently assumed.
+# ---------------------------------------------------------------------------
+handeye:
+  # DEFAULT mode. Each camera overrides this with `handeye_mode` in
+  # cameras.yaml, because this rig mixes both:
+  #   camera_1 (D405, wrist)  -> eye_in_hand
+  #   camera_2/3 (D435, side) -> eye_to_hand
+  #
+  # eye_to_hand : camera bolted to the world; BOARD is mounted on the robot.
+  #               Solves camera -> robot base.
+  # eye_in_hand : camera bolted to the robot flange; BOARD is fixed in world.
+  #               Solves camera -> tool flange.
+  mode: eye_to_hand
+
+  # tsai | park | horaud | andreff | daniilidis
+  method: park
+
+  # Also run every other method and report the spread between them. A large
+  # spread is a strong hint of bad data or a wrong `mode`.
+  cross_check_all_methods: true
+
+  # Set true once you have confirmed, for EVERY camera, that its
+  # `handeye_mode` matches how that camera and the board are physically
+  # mounted right now.
+  verified_by_user: false
+
+# ---------------------------------------------------------------------------
+# Verification / hold-out validation.
+# ---------------------------------------------------------------------------
+verification:
+  # Reprojection error above this in the hold-out set is reported as a failure.
+  maximum_validation_reprojection_px: 2.0
+  maximum_validation_translation_mm: 10.0
+  maximum_validation_rotation_deg: 2.0
