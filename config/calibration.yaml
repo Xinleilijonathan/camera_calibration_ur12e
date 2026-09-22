@@ -27,16 +27,16 @@
 # ---------------------------------------------------------------------------
 apriltag_grid:
   tag_family: tag36h11            # tag36h11 | tag36h10 | tag25h9 | tag16h5
-  rows: 6                         # number of tags vertically      (REPLACE)
-  columns: 6                      # number of tags horizontally    (REPLACE)
-  tag_size_m: 0.030               # black square side, metres      (REPLACE)
-  tag_spacing_m: 0.009            # white gap between tags, metres (REPLACE)
+  rows: 6                         # number of tags vertically   (measured 2026-09-22)
+  columns: 4                      # number of tags horizontally (measured 2026-09-22)
+  tag_size_m: 0.028               # black square side, metres   (measured 2026-09-22)
+  tag_spacing_m: 0.0084           # white gap between tags, m   (measured 2026-09-22)
   first_tag_id: 0                 # ID of the top-left tag
 
   # Set to true ONLY after you have physically measured the four values above
   # with a ruler/caliper. Scripts that emit metric results refuse to run while
   # this is false.
-  verified_by_user: false
+  verified_by_user: true
 
 # ---------------------------------------------------------------------------
 # What counts as a usable detection of the board.

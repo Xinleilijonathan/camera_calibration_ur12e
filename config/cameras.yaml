@@ -34,22 +34,25 @@
 #   3. .venv/bin/python scripts/list_cameras.py --emit-yaml
 #      then paste the generated serials below.
 #
-# !!!! UNVERIFIED: WHICH D435 IS camera_2 AND WHICH IS camera_3 !!!!
+# SERIAL -> SLOT MAPPING IS OPERATOR-CONFIRMED (2026-09-22)
 #
-# The three serials below were read off the hardware on ur12e-flexlab and are
-# correct. But the two D435IF serials were assigned to camera_2 and camera_3
-# ARBITRARILY -- nobody has yet confirmed which physical camera, on which side
-# of the cell, carries which serial.
+# The three serials were read off the hardware on ur12e-flexlab, and the
+# operator has since confirmed which D435IF belongs to which slot:
 #
-# Fix it before collecting anything, because swapping camera_2 and camera_3
-# yields two calibrations that are each internally consistent, pass every
-# reprojection and hold-out check, and are attached to the wrong cameras.
-# No downstream test can detect it.
+#     camera_2 = 327122073926      camera_3 = 327122075735
 #
-# To resolve: open one in realsense-viewer, cover its lens by hand, see which
-# stream goes dark, then write the side into that camera's `description` and
-# delete the REPLACE marker. The sysfs paths noted per camera below also
-# distinguish them if you know which physical port each cable occupies.
+# Do not swap these. Swapping camera_2 and camera_3 yields two calibrations
+# that are each internally consistent, pass every reprojection and hold-out
+# check, and are attached to the wrong cameras. No downstream test can
+# detect it, which is why the mapping is confirmed by hand rather than
+# guessed.
+#
+# Still not recorded: which SIDE of the cell each camera physically occupies.
+# That is documentation only -- it does not affect any computation -- but it
+# is what lets someone re-identify the cameras after a re-cable. When you
+# know, write it into the `description` fields below, anchored to something
+# that cannot move (the robot base axes, or a fixed landmark such as a window
+# or cabinet) rather than "left"/"right", which depends on where you stand.
 #
 # Note the D405 has a much shorter working range than the D435 (roughly
 # 7-50 cm vs 30 cm+). Place the board accordingly for each session.
@@ -83,7 +86,7 @@ cameras:
     # only after this camera is moved to a USB 3 port with a USB 3 cable.
     fps: 15
     handeye_mode: eye_to_hand
-    description: "D435IF fixed at the side of the workcell; USB 2.1, sysfs 3-12 -> /dev/video12 (REPLACE: which side?)"
+    description: "D435IF fixed at the side of the workcell; slot confirmed 2026-09-22; USB 2.1, sysfs 3-12 -> /dev/video12; physical side not yet recorded"
 
   camera_3:
     name: camera_3
@@ -97,7 +100,7 @@ cameras:
     # time as camera_2 -- one 720p stream saturates the bus on its own.
     fps: 15
     handeye_mode: eye_to_hand
-    description: "D435IF fixed at the side of the workcell; USB 2.1 behind hub, sysfs 3-13.4 -> /dev/video6 (REPLACE: which side?)"
+    description: "D435IF fixed at the side of the workcell; slot confirmed 2026-09-22; USB 2.1 behind hub, sysfs 3-13.4 -> /dev/video6; physical side not yet recorded"
 
 # ---------------------------------------------------------------------------
 # Capture behaviour shared by all cameras.

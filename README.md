@@ -176,12 +176,16 @@ board, so the rates above are what the config ships. Two consequences to remembe
 To lift the limit, move both D435s to USB 3 ports with USB 3 cables (the bundled short
 cable is the usual culprit), then raise `fps` to 30 in `cameras.yaml`.
 
-**Still unverified: which physical D435 is `camera_2` and which is `camera_3`.** The
-serials are correct but were assigned to the two slots arbitrarily. Resolve this before
-collecting, because swapping them yields two calibrations that each pass every
-reprojection and hold-out check while describing the wrong camera. Open one in
-`realsense-viewer`, cover its lens, see which stream goes dark, then write the side into
-that camera's `description` and delete the `REPLACE` marker.
+**The serial-to-slot mapping is confirmed** (operator, 2026-09-22): `camera_2` is
+`327122073926`, `camera_3` is `327122075735`. Do not swap them. Swapping yields two
+calibrations that each pass every reprojection and hold-out check while describing the
+wrong camera, and no downstream test can detect it.
+
+What is still not written down is which *side* of the cell each camera occupies. That is
+documentation only and blocks nothing, but it is what lets someone re-identify the
+cameras after a re-cable. When you record it, anchor to something that cannot move — the
+robot base axes, or a fixed landmark — rather than "left"/"right", which depends on where
+the reader is standing.
 
 ---
 
