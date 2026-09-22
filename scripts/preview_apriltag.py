@@ -59,6 +59,76 @@ def draw_panel(canvas, lines, origin=(10, 10), width=430, alpha=0.55):
     return canvas
 
 
+def _headless_report(camera, detector, K, D, args, logger) -> int:
+    """Sample frames and report detection in text, with no window at all.
+
+    A plain SSH session has no DISPLAY, so cv2.imshow aborts the process
+    outright ("no Qt platform plugin could be initialized"). The useful
+    question in that situation -- does the board detect, and how well -- does
+    not actually need a live view, so answer it in text and leave an
+    annotated PNG behind to look at afterwards.
+
+    Several frames rather than one, because detection on a marginal board
+    flickers: a single lucky frame is not evidence that collection will work.
+    """
+    count = max(1, int(args.headless))
+    print(f"HEADLESS: sampling {count} frames, no window.")
+    print()
+    valid = 0
+    tags: list[int] = []
+    sharpness: list[float] = []
+    best = None
+    reasons: dict[str, int] = {}
+
+    for index in range(count):
+        frame = camera.read(flush=0)
+        detection = detector.process(frame.image, K, D, require_pose=False)
+        valid += bool(detection.valid)
+        tags.append(detection.tags_detected)
+        sharpness.append(detection.sharpness)
+        for reason in detection.reasons:
+            reasons[reason] = reasons.get(reason, 0) + 1
+        if best is None or detection.tags_detected > best[1].tags_detected:
+            best = (frame, detection)
+        print(f"  frame {index + 1:2d}: "
+              f"{'VALID  ' if detection.valid else 'INVALID'} "
+              f"tags {detection.tags_detected:2d}/{detector.spec.tag_count}  "
+              f"corners {detection.corners_detected:3d}  "
+              f"sharpness {detection.sharpness:6.0f}  "
+              f"margin {detection.border_margin_px:6.1f} px"
+              + (f"  dist {detection.distance_m * 1000:5.0f} mm"
+                 if detection.has_pose else ""))
+
+    print()
+    print(f"VALID on {valid}/{count} frames")
+    print(f"tags      : min {min(tags)}  max {max(tags)}  "
+          f"of {detector.spec.tag_count}")
+    print(f"sharpness : min {min(sharpness):.0f}  max {max(sharpness):.0f}  "
+          f"(threshold {detector.min_sharpness:.0f})")
+    if reasons:
+        print()
+        print("Why frames were rejected:")
+        for reason, hits in sorted(reasons.items(), key=lambda kv: -kv[1]):
+            print(f"  {hits:3d}x  {reason}")
+
+    if best is not None:
+        frame, detection = best
+        target = Path(args.save_frame or f"preview_{args.camera}_headless.png")
+        canvas = detector.annotate(frame.image, detection, K, D)
+        cv2.imwrite(str(target), frame.image)
+        cv2.imwrite(str(target.with_name(target.stem + "_annotated.png")), canvas)
+        print()
+        print(f"Saved {target} and {target.with_name(target.stem + '_annotated.png')} "
+              f"(best of {count} frames, {detection.tags_detected} tags)")
+
+    if valid == 0:
+        print()
+        print("NOTHING VALID. Check lighting, focus, distance and that the board "
+              "geometry in calibration.yaml matches the printed board.")
+        return 1
+    return 0
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
         description="Live AprilTag grid preview (read-only, never moves the robot).")
@@ -68,6 +138,11 @@ def main(argv=None) -> int:
                         help="ignore any solved intrinsics and skip board pose")
     parser.add_argument("--save-frame", metavar="PATH",
                         help="write the current frame to PATH when you press S")
+    parser.add_argument("--headless", type=int, metavar="N", nargs="?", const=15,
+                        help="open no window: sample N frames (default 15), print "
+                             "a detection report and save an annotated PNG. For "
+                             "checking the board over a plain SSH session, where "
+                             "cv2.imshow cannot initialise a Qt platform plugin.")
     args = parser.parse_args(argv)
 
     logger = setup_logging("preview_apriltag", args.camera)
@@ -112,6 +187,8 @@ def main(argv=None) -> int:
     frame_times: list[float] = []
     try:
         camera = open_camera(camera_config)
+        if args.headless:
+            return _headless_report(camera, detector, K, D, args, logger)
         window = f"AprilTag preview -- {args.camera}"
         cv2.namedWindow(window, cv2.WINDOW_NORMAL)
 

@@ -223,7 +223,7 @@ handeye:
   # Set true once you have confirmed, for EVERY camera, that its
   # `handeye_mode` matches how that camera and the board are physically
   # mounted right now.
-  verified_by_user: false
+  verified_by_user: true
 
 # ---------------------------------------------------------------------------
 # Verification / hold-out validation.

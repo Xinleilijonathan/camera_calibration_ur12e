@@ -403,8 +403,21 @@ to run until `verified_by_user: true`.
 
 Shows tag outlines, IDs, corners, tag count, **VALID / INVALID**, resolution, and — once
 intrinsics exist — the board pose, distance, tilt and PnP residual. Keys: `Q`/`ESC` quit,
-`S` save frame, `H` toggle help. Add `--no-intrinsics` to skip the pose display, or
-`--save-frame PATH` to grab a single frame and exit.
+`S` save frame, `H` toggle help. `--no-intrinsics` skips the pose display;
+`--save-frame PATH` sets where `S` writes (it does not capture and exit on its own).
+
+**This opens a window, so it needs a display.** Over a plain SSH session it aborts with
+`no Qt platform plugin could be initialized`. Either use `ssh -X`, work at the machine, or
+run the text-only check:
+
+```bash
+.venv/bin/python scripts/preview_apriltag.py --camera camera_1 --headless 15
+```
+
+That opens no window: it samples 15 frames, prints per-frame tag counts, sharpness and
+border margin, tallies why frames were rejected, and saves the best frame plus an
+annotated copy to look at afterwards. Several frames rather than one, because detection on
+a marginal board flickers and a single lucky frame proves nothing.
 
 This script contains no robot code at all and cannot move anything.
 
