@@ -1,0 +1,24 @@
+# Master waypoint list for camera_2. All poses are ACTUAL measured robot state.
+camera_name: camera_2
+camera_serial: '327122073926'
+timestamp: '2026-09-24T21:13:30.984+00:00'
+count: 0
+calibration_center_q:
+- -1.6006999999999998
+- -1.7271
+- -2.2029999999999994
+- -0.8079999999999998
+- 1.5951
+- -0.030999999999999694
+calibration_center_tcp:
+- -0.18963153692348175
+- -0.6096838816511917
+- 0.26097114869435084
+- -0.0012213596815925638
+- 3.1162765284819756
+- 0.038891915636886834
+intrinsics_file: /home/robot2026fall/camera_calibration/data/camera_2/intrinsics/result.yaml
+waypoints: []
+armed: false
+input_device: keyboard
+handeye_mode: eye_to_hand

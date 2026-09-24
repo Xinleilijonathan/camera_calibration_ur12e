@@ -110,9 +110,33 @@ you.
 
 Then, per camera:
 
+Collect in batches and check the board between them, rather than discovering
+a problem after 30 poses:
+
 ```bash
-.venv/bin/python scripts/collect_waypoints.py --camera camera_2 --target-count 30 --read-only
+.venv/bin/python scripts/collect_waypoints.py --camera camera_2 --target-count 10 --read-only
 ```
+
+```bash
+.venv/bin/python scripts/check_board_rigid.py --camera camera_2
+```
+
+Then add the next batch with `--resume` and re-check, to 30:
+
+```bash
+.venv/bin/python scripts/collect_waypoints.py --camera camera_2 --target-count 20 --read-only --resume
+```
+
+`check_board_rigid.py` exists because camera_2's first session was lost to it.
+The board worked loose partway through; every frame still passed every
+per-frame check -- crisp PnP, sharp images, nothing rejected -- and the
+dataset was still unusable, because hand-eye assumes the board-to-mount
+transform is constant. It only surfaced at solve time, with the five solvers
+disagreeing by 45 mm. The check recovers where the board sits on its mount at
+each waypoint and looks for a step. Measured on synthetic sets built from real
+poses, it catches a 10 mm slip 8 times out of 8 even in a 10-waypoint batch; a
+5 mm slip in a small batch is roughly a coin flip. It is a safety net, not a
+guarantee -- the fix for a loose board is a better mount.
 
 ```bash
 .venv/bin/python scripts/analyze_waypoints.py      --camera camera_2
@@ -867,6 +891,7 @@ Plus three standalone scripts with no module behind them:
 | `scripts/make_board.py` | Print-ready, exactly-scaled board PDF, so the print and the solver cannot disagree |
 | `scripts/factory_intrinsics.py` | Reads a RealSense module's own calibration into `result.yaml`, stamped `source: factory` |
 | `scripts/check_distortion.py` | Refits distortion against collected views and scores the disagreement in board pose |
+| `scripts/check_board_rigid.py` | Detects a board that moved on its mount mid-collection, which no per-frame check can see |
 
 ---
 

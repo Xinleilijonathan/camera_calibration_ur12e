@@ -1,0 +1,4 @@
+Board worked loose during this session; the board-to-flange transform
+shifted ~10 mm mid-collection, so every waypoint here is unusable.
+Diagnosed by scripts/check_board_rigid.py. Kept as the record of why
+camera_2 was re-collected -- do not solve from these.
