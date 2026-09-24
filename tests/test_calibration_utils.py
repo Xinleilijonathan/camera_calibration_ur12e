@@ -78,9 +78,33 @@ class TestShippedConfigs:
         assert motion["joint_speed_rad_s"] <= 0.25
         assert motion["tcp_speed_m_s"] <= 0.05
 
-    def test_shipped_board_is_marked_unverified(self):
-        with pytest.raises(ConfigError, match="not confirmed"):
-            require_board_verified(load_calibration_config())
+    def test_board_geometry_is_physically_sane(self):
+        """The board has been measured (2026-09-22); check it stayed coherent.
+
+        This used to assert the opposite -- that the board was still marked
+        unverified -- back when config/ was a blank template. The operator has
+        since measured the printed board with a caliper, so the useful check
+        is no longer "untouched" but "the numbers describe a real board".
+
+        A typo here is the most expensive error in the project: tag_size_m
+        scales the entire hand-eye translation by the same factor WITHOUT
+        raising reprojection error, so nothing downstream can catch it.
+        """
+        grid = load_calibration_config()["apriltag_grid"]
+        assert grid["rows"] > 0 and grid["columns"] > 0
+        # Printed AprilTag boards live in millimetres, not metres or microns.
+        assert 0.005 < grid["tag_size_m"] < 0.5, "tag_size_m is not a plausible printed tag"
+        assert 0 < grid["tag_spacing_m"] < grid["tag_size_m"], (
+            "the white gap should be positive and smaller than the tag itself")
+
+    def test_detection_thresholds_fit_the_configured_board(self):
+        """Requiring more tags than the board has would reject every frame."""
+        config = load_calibration_config()
+        grid, detection = config["apriltag_grid"], config["detection"]
+        total_tags = grid["rows"] * grid["columns"]
+        assert detection["minimum_tags_required"] <= total_tags, (
+            f"needs {detection['minimum_tags_required']} tags, board has {total_tags}")
+        assert detection["minimum_corners_required"] <= total_tags * 4
 
     def test_require_board_verified_passes_when_set(self):
         config = load_calibration_config()
