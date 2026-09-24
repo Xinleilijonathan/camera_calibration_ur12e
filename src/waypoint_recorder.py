@@ -356,6 +356,16 @@ class WaypointRecorder:
 
     # -- set management ----------------------------------------------------
 
+    def next_number(self) -> int:
+        """The number a new waypoint should take.
+
+        Derived from the highest number already held, so that resuming onto a
+        set with gaps -- after archiving part of it, say -- appends instead of
+        overwriting. Using the record COUNT here is wrong the moment the
+        numbering is not a gapless 1..N.
+        """
+        return max((record.number for record in self.records), default=0) + 1
+
     def undo_last(self) -> str | None:
         """Remove the most recent waypoint's image and metadata together."""
         if not self.records:
