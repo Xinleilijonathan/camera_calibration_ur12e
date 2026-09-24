@@ -238,6 +238,42 @@ Two of them require a physical measurement, which is the real work here.
 
 Gate 4 does not block data collection. Use `--read-only` and move the arm by hand.
 
+### Gate 0 — print a board the software agrees with
+
+Do this before measuring anything:
+
+```bash
+.venv/bin/python scripts/make_board.py            # US Letter, apriltag_board.pdf
+.venv/bin/python scripts/make_board.py --paper a4 --output ~/board.pdf
+```
+
+Defaults to US Letter (215.9 x 279.4 mm), which is what this lab prints on;
+`--paper a4` and `--paper a3` are also available.
+
+Print at **100% / Actual size**. Turn off "fit to page" — that silently
+rescales and is the usual reason a board disagrees with its own spec sheet.
+
+**Why this matters more than it looks.** `cv2.aruco.GridBoard` numbers tags
+left-to-right along each row. Other generators — Kalibr, the upstream AprilTag
+tools, assorted web generators — do not all agree on that. A board numbered the
+other way **still detects perfectly**: every tag decodes, the grid looks
+regular, the tag images match the dictionary, and nothing warns. But each tag is
+then paired with the wrong 3D point.
+
+That happened here on 2026-09-22. Twenty clean captures produced:
+
+| | RMS | fx | fy | cx | cy |
+|---|---|---|---|---|---|
+| D405 factory values | — | 656.2 | 655.6 | 629.8 | 363.5 |
+| Solved from a mirrored board | **32.4 px** | 2097 | 1493 | 697.6 | 321.2 |
+| Same captures, IDs un-mirrored | **0.885 px** | 649.7 | 653.7 | 626.0 | 363.5 |
+
+Printing the board this script emits removes the whole class of error, because
+the board and the object points come from the same `GridBoard` object.
+
+After printing, measure the **100.00 mm bar** on the page. If it is not exactly
+100.00 mm the printer rescaled; reprint rather than compensating in config.
+
 ### Gate 1 in detail — the one that silently ruins everything
 
 Measure the printed board with a caliper and fill in `config/calibration.yaml`:
@@ -665,6 +701,9 @@ metadata, because the metadata is the commit point every loader keys off.
 | `waypoint_quality.py` | Per-waypoint scoring, outlier flagging, best-N selection |
 | `handeye_calibration.py` | The hand-eye solve, method cross-check, hold-out validation |
 | `ui_overlay.py` | The preview overlay drawing helpers |
+
+Plus `scripts/make_board.py`, which emits a print-ready, exactly-scaled PDF of
+the configured board so the print and the solver cannot disagree.
 
 ---
 

@@ -15,3 +15,7 @@ data/**/*.log
 
 # Logs
 logs/
+
+# Generated printable board (regenerate with scripts/make_board.py)
+apriltag_board.pdf
+apriltag_board.png

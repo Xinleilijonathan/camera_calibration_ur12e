@@ -171,3 +171,111 @@ class TestAnnotation:
         blank = np.full((240, 320, 3), 128, dtype=np.uint8)
         canvas = detector.annotate(blank, detector.process(blank))
         assert canvas.shape == blank.shape
+
+
+class TestPrintableBoardMatchesObjectPoints:
+    """The printed board and the object points must agree by construction.
+
+    This is the invariant that a real board violated in September 2026: a
+    board whose tag IDs ran right-to-left along each row instead of
+    left-to-right. Every tag decoded, the grid looked perfectly regular, the
+    tag images themselves matched the dictionary, and nothing warned -- but
+    each tag was matched to the wrong 3D point, and the intrinsic solve
+    returned fx=2097 against a true 656 with a 32 px RMS. Re-solving the same
+    captures with the IDs mirrored reproduced the factory intrinsics to
+    within 1%.
+
+    So: whatever make_board.py emits must round-trip through the detector and
+    land on the object points the solver will use.
+    """
+
+    def test_rendered_board_detects_completely(self, detector):
+        import cv2
+        image = detector.render_board(4000.0, margin_px=80)
+        detection = detector.detect(cv2.cvtColor(image, cv2.COLOR_GRAY2BGR))
+        found = sorted(int(i) for i in detection.ids.ravel())
+        expected = list(range(detector.spec.first_tag_id,
+                              detector.spec.first_tag_id + detector.spec.tag_count))
+        assert found == expected, "rendered board does not show every configured tag"
+
+    def test_rendered_board_lands_on_the_object_points(self, detector):
+        """A mirrored or transposed layout still detects; only this catches it."""
+        import cv2
+        image = detector.render_board(4000.0, margin_px=80)
+        detection = detector.detect(cv2.cvtColor(image, cv2.COLOR_GRAY2BGR))
+        ids = detection.ids.ravel().tolist()
+
+        board_points = np.asarray(detector.board.getObjPoints(),
+                                  dtype=np.float64).reshape(-1, 4, 3)
+        board_ids = np.asarray(detector.board.getIds()).ravel()
+        lookup = {int(i): board_points[k] for k, i in enumerate(board_ids)}
+
+        object_xy = np.concatenate([lookup[int(t)][:, :2] for t in ids], axis=0)
+        image_xy = detection.corners.reshape(-1, 2).astype(np.float64)
+
+        # The board is planar and the render is orthographic-ish, so a correct
+        # correspondence fits a homography to well under a pixel. A mirrored
+        # layout lands one tag pitch out -- tens of pixels.
+        homography, _ = cv2.findHomography(object_xy, image_xy, 0)
+        projected = cv2.perspectiveTransform(
+            object_xy.reshape(-1, 1, 2), homography).reshape(-1, 2)
+        residual = np.linalg.norm(projected - image_xy, axis=1).mean()
+        assert residual < 2.0, (
+            f"board layout disagrees with getObjPoints(): {residual:.1f} px")
+
+    def test_tag_ids_increase_left_to_right_along_a_row(self, detector):
+        """Pin the convention the printed board has to follow."""
+        board_points = np.asarray(detector.board.getObjPoints(),
+                                  dtype=np.float64).reshape(-1, 4, 3)
+        board_ids = np.asarray(detector.board.getIds()).ravel()
+        centres = {int(i): board_points[k].mean(axis=0)
+                   for k, i in enumerate(board_ids)}
+        first = detector.spec.first_tag_id
+        # Consecutive IDs inside one row step along +X; the row itself is flat in Y.
+        if detector.spec.columns >= 2:
+            a, b = centres[first], centres[first + 1]
+            assert b[0] > a[0], "consecutive IDs must run left to right"
+            assert abs(b[1] - a[1]) < 1e-9, "consecutive IDs must stay in one row"
+        # The tag one full row on steps along +Y.
+        if detector.spec.rows >= 2:
+            c = centres[first + detector.spec.columns]
+            assert c[1] > centres[first][1], "the next row must be at larger Y"
+
+    def test_the_check_above_actually_catches_a_mirrored_board(self, detector):
+        """Prove the residual check discriminates, rather than always passing.
+
+        render_board() and getObjPoints() both come from the same GridBoard,
+        so on its own the test above cannot fail. Build the board that burned
+        us -- IDs reversed along each row -- render THAT, and confirm the
+        residual explodes. Without this, the check is decoration.
+        """
+        import cv2
+        spec = detector.spec
+        rows, cols = spec.rows, spec.columns
+        mirrored_ids = np.array(
+            [spec.first_tag_id + (r * cols) + (cols - 1 - c)
+             for r in range(rows) for c in range(cols)], dtype=np.int32)
+        mirrored = cv2.aruco.GridBoard(
+            (cols, rows), spec.tag_size_m, spec.tag_spacing_m,
+            detector.dictionary, mirrored_ids)
+        image = mirrored.generateImage(
+            (int(spec.width_m * 4000) + 160, int(spec.height_m * 4000) + 160),
+            marginSize=80)
+
+        detection = detector.detect(cv2.cvtColor(image, cv2.COLOR_GRAY2BGR))
+        ids = detection.ids.ravel().tolist()
+        assert len(ids) == spec.tag_count, "the mirrored board still detects fully"
+
+        board_points = np.asarray(detector.board.getObjPoints(),
+                                  dtype=np.float64).reshape(-1, 4, 3)
+        board_ids = np.asarray(detector.board.getIds()).ravel()
+        lookup = {int(i): board_points[k] for k, i in enumerate(board_ids)}
+        object_xy = np.concatenate([lookup[int(t)][:, :2] for t in ids], axis=0)
+        image_xy = detection.corners.reshape(-1, 2).astype(np.float64)
+
+        homography, _ = cv2.findHomography(object_xy, image_xy, 0)
+        projected = cv2.perspectiveTransform(
+            object_xy.reshape(-1, 1, 2), homography).reshape(-1, 2)
+        residual = np.linalg.norm(projected - image_xy, axis=1).mean()
+        assert residual > 20.0, (
+            f"a mirrored board should be obvious, but fitted to {residual:.1f} px")
