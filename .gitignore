@@ -19,3 +19,6 @@ logs/
 # Generated printable board (regenerate with scripts/make_board.py)
 apriltag_board.pdf
 apriltag_board.png
+
+# Debug frames dropped by preview_apriltag.py --headless
+preview_*.png

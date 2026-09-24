@@ -70,9 +70,24 @@ detection:
   maximum_board_area_fraction: 0.90
 
   # Motion-blur guard: variance of the Laplacian inside the board region.
-  # Lower = blurrier. Tune once against your own camera/lighting; the value
-  # printed in the preview overlay tells you what your sharp frames score.
-  minimum_sharpness: 40.0
+  # Lower = blurrier.
+  #
+  # BEWARE: this number is SCALE-DEPENDENT, so it cannot be read off a
+  # preview taken at a different distance than you will work at. Edge
+  # density per pixel falls as the board grows in frame, so the same sharp
+  # board scores lower the closer it gets. Measured on camera_2
+  # (2026-09-24), corr(sharpness, board area) = -0.76:
+  #
+  #     board 2.2% of frame -> 1528        board 7.6% of frame -> 439
+  #
+  # A threshold taken from a far-away preview (~2600 at 1.1 m) would have
+  # rejected every good close-up frame.
+  #
+  # 350 sits just under the 439 floor actually recorded across camera_2's
+  # 18 accepted views, so it rejects a genuinely smeared frame without
+  # touching good close work. Re-derive it if you change working distance
+  # or lens: collect a set, then read the minimum sharpness it accepted.
+  minimum_sharpness: 350.0
 
   # Reject the frame if the PnP fit to the board is worse than this.
   maximum_pnp_reprojection_px: 1.5

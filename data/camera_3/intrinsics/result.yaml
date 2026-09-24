@@ -1,57 +1,327 @@
-# FACTORY intrinsics for camera_3 (serial 327122075735).
-# Read from the camera's own flash -- NOT solved from board
-# observations. See `source` below before trusting these numbers.
+# Intrinsic calibration for camera_3 (serial 327122075735).
 # These parameters belong to THIS camera only and must never be
 # reused for another camera, even one of the same model.
 # Valid only at 1280x720.
-timestamp: '2026-09-24T19:51:33.447+00:00'
-source: factory
-source_note: Read from the camera's own flash by scripts/factory_intrinsics.py. NOT solved from observations.
-  No reprojection error exists for these values because nothing was measured against a board.
+timestamp: '2026-09-24T20:52:47.606+00:00'
 image_width: 1280
 image_height: 720
-observation_count: 0
+observation_count: 30
 distortion_model: standard
 camera_matrix:
-- - 914.4573364257812
+- - 913.7805834661452
   - 0.0
-  - 652.8447265625
+  - 658.2847558861737
 - - 0.0
-  - 914.53466796875
-  - 373.2990417480469
+  - 912.3961467586116
+  - 380.72119151650355
 - - 0.0
   - 0.0
   - 1.0
-fx: 914.4573364257812
-fy: 914.53466796875
-cx: 652.8447265625
-cy: 373.2990417480469
+fx: 913.7805834661452
+fy: 912.3961467586116
+cx: 658.2847558861737
+cy: 380.72119151650355
 distortion_coefficients:
-- 0.0
-- 0.0
-- 0.0
-- 0.0
-- 0.0
+- 0.14722479204198202
+- -0.4851447619373286
+- 0.0029970243767067197
+- 0.0028379012653395254
+- 0.46622635857003913
+rms_reprojection_error_px: 0.3904692826991663
+mean_reprojection_error_px: 0.36174096183155274
+median_reprojection_error_px: 0.3474719429282711
+max_reprojection_error_px: 1.2459648589014383
+std_reprojection_error_px: 0.14700250768195952
+total_points: 2872
+per_observation:
+- index: 1
+  image: observation_001.png
+  points: 96
+  mean_px: 0.3017063563306238
+  rms_px: 0.3199870060985836
+  max_px: 0.6736185718060962
+  opencv_per_view_error: 0.3199870060985836
+  tilt_deg: 29.12096632305327
+  distance_m: 1.5330148287479397
+- index: 2
+  image: observation_002.png
+  points: 92
+  mean_px: 0.3063893167942083
+  rms_px: 0.3271762130181612
+  max_px: 0.5611721222860836
+  opencv_per_view_error: 0.3271762130181612
+  tilt_deg: 25.911876269916384
+  distance_m: 1.5778129317132268
+- index: 3
+  image: observation_003.png
+  points: 96
+  mean_px: 0.38983530229435154
+  rms_px: 0.41183842957537314
+  max_px: 0.7921129064924243
+  opencv_per_view_error: 0.41183842957537314
+  tilt_deg: 22.677970794717695
+  distance_m: 1.3790122594351153
+- index: 4
+  image: observation_004.png
+  points: 96
+  mean_px: 0.41217447681657715
+  rms_px: 0.43457285256182815
+  max_px: 0.6821251229178021
+  opencv_per_view_error: 0.4345728525618281
+  tilt_deg: 25.180480395404675
+  distance_m: 1.3092316264092743
+- index: 5
+  image: observation_005.png
+  points: 96
+  mean_px: 0.3069189365667313
+  rms_px: 0.3257883894114269
+  max_px: 0.6308670174545027
+  opencv_per_view_error: 0.32578838941142685
+  tilt_deg: 38.8608809943359
+  distance_m: 1.4023308101042216
+- index: 6
+  image: observation_006.png
+  points: 96
+  mean_px: 0.4352261185395707
+  rms_px: 0.4750965558551006
+  max_px: 0.9599909867236179
+  opencv_per_view_error: 0.4750965558551006
+  tilt_deg: 53.28683222405072
+  distance_m: 1.354707464677037
+- index: 7
+  image: observation_007.png
+  points: 96
+  mean_px: 0.3784558388142849
+  rms_px: 0.40057428840092535
+  max_px: 0.6537646561529514
+  opencv_per_view_error: 0.4005742884009253
+  tilt_deg: 28.127311623693064
+  distance_m: 1.4273708247384926
+- index: 8
+  image: observation_008.png
+  points: 96
+  mean_px: 0.4650253261963746
+  rms_px: 0.5081960580904049
+  max_px: 1.2459648589014383
+  opencv_per_view_error: 0.5081960580904049
+  tilt_deg: 58.218898183006445
+  distance_m: 1.170532712098318
+- index: 9
+  image: observation_009.png
+  points: 96
+  mean_px: 0.4120346667481866
+  rms_px: 0.433425985936039
+  max_px: 0.6622336963418015
+  opencv_per_view_error: 0.43342598593603904
+  tilt_deg: 55.87530845181759
+  distance_m: 1.154028858782227
+- index: 10
+  image: observation_010.png
+  points: 96
+  mean_px: 0.3245106083730665
+  rms_px: 0.34136847477998794
+  max_px: 0.6701687219788518
+  opencv_per_view_error: 0.34136847477998794
+  tilt_deg: 36.16838445517957
+  distance_m: 1.3960707092003681
+- index: 11
+  image: observation_011.png
+  points: 96
+  mean_px: 0.36815866740919484
+  rms_px: 0.401728533841416
+  max_px: 0.7420998077638687
+  opencv_per_view_error: 0.401728533841416
+  tilt_deg: 34.49435654639091
+  distance_m: 1.3158758596952056
+- index: 12
+  image: observation_012.png
+  points: 96
+  mean_px: 0.3984955846020588
+  rms_px: 0.41274565221940523
+  max_px: 0.6352349659582549
+  opencv_per_view_error: 0.4127456522194052
+  tilt_deg: 36.35240069971395
+  distance_m: 1.3012117789789535
+- index: 13
+  image: observation_013.png
+  points: 96
+  mean_px: 0.3491430891473577
+  rms_px: 0.37162657634807356
+  max_px: 0.6353470025658524
+  opencv_per_view_error: 0.37162657634807356
+  tilt_deg: 53.93461384301934
+  distance_m: 1.2740781056470154
+- index: 14
+  image: observation_014.png
+  points: 96
+  mean_px: 0.3339847645149098
+  rms_px: 0.35425731202056115
+  max_px: 0.6048167783947291
+  opencv_per_view_error: 0.35425731202056115
+  tilt_deg: 17.762421981524668
+  distance_m: 1.40216122995278
+- index: 15
+  image: observation_015.png
+  points: 96
+  mean_px: 0.3314380059557282
+  rms_px: 0.3525410825084464
+  max_px: 0.6724952681428681
+  opencv_per_view_error: 0.3525410825084464
+  tilt_deg: 18.017728140418008
+  distance_m: 1.5308046332605376
+- index: 16
+  image: observation_016.png
+  points: 96
+  mean_px: 0.32311052380254607
+  rms_px: 0.34549519987558563
+  max_px: 0.624789440003024
+  opencv_per_view_error: 0.34549519987558563
+  tilt_deg: 25.733623911558645
+  distance_m: 1.416094570055723
+- index: 17
+  image: observation_017.png
+  points: 96
+  mean_px: 0.3875370963548974
+  rms_px: 0.40771335324747277
+  max_px: 0.7371333957323641
+  opencv_per_view_error: 0.40771335324747277
+  tilt_deg: 24.474118881480297
+  distance_m: 1.477588600015451
+- index: 18
+  image: observation_018.png
+  points: 96
+  mean_px: 0.38601849741017213
+  rms_px: 0.40290120221279196
+  max_px: 0.6410553133969447
+  opencv_per_view_error: 0.40290120221279196
+  tilt_deg: 20.664338019963363
+  distance_m: 1.4410697131540604
+- index: 19
+  image: observation_019.png
+  points: 96
+  mean_px: 0.371774754713998
+  rms_px: 0.3932927344594514
+  max_px: 0.6541728457575802
+  opencv_per_view_error: 0.39329273445945134
+  tilt_deg: 46.44818969838304
+  distance_m: 0.9948810522385438
+- index: 20
+  image: observation_020.png
+  points: 96
+  mean_px: 0.3536850649626319
+  rms_px: 0.3854103951642619
+  max_px: 0.8005636351786707
+  opencv_per_view_error: 0.3854103951642619
+  tilt_deg: 51.57457957983332
+  distance_m: 0.9441258909216962
+- index: 21
+  image: observation_021.png
+  points: 92
+  mean_px: 0.43383159643149055
+  rms_px: 0.4658562913354826
+  max_px: 0.7970014632089454
+  opencv_per_view_error: 0.46585629133548273
+  tilt_deg: 25.932372995217438
+  distance_m: 1.122125433103948
+- index: 22
+  image: observation_022.png
+  points: 96
+  mean_px: 0.4673594981345131
+  rms_px: 0.5134236076158796
+  max_px: 0.9407096069933324
+  opencv_per_view_error: 0.5134236076158796
+  tilt_deg: 25.282160479583563
+  distance_m: 1.3168353500773051
+- index: 23
+  image: observation_023.png
+  points: 96
+  mean_px: 0.38137222547862004
+  rms_px: 0.3957875929983638
+  max_px: 0.6253660010710627
+  opencv_per_view_error: 0.3957875929983638
+  tilt_deg: 21.729374448490272
+  distance_m: 1.323411600324758
+- index: 24
+  image: observation_024.png
+  points: 96
+  mean_px: 0.34804181922818317
+  rms_px: 0.3823340820360619
+  max_px: 1.0786345894477554
+  opencv_per_view_error: 0.3823340820360619
+  tilt_deg: 38.25296629407817
+  distance_m: 1.4903527208524505
+- index: 25
+  image: observation_025.png
+  points: 96
+  mean_px: 0.321538746477175
+  rms_px: 0.3446461965463963
+  max_px: 0.7128849353504556
+  opencv_per_view_error: 0.3446461965463963
+  tilt_deg: 42.03599124554231
+  distance_m: 1.403706612573109
+- index: 26
+  image: observation_026.png
+  points: 96
+  mean_px: 0.29893207313198217
+  rms_px: 0.31468441087111443
+  max_px: 0.5135279427710636
+  opencv_per_view_error: 0.31468441087111443
+  tilt_deg: 39.111591317517394
+  distance_m: 1.4336319797240618
+- index: 27
+  image: observation_027.png
+  points: 96
+  mean_px: 0.397782340060817
+  rms_px: 0.43584489909245133
+  max_px: 0.9322132499410795
+  opencv_per_view_error: 0.4358448990924514
+  tilt_deg: 22.858562988580772
+  distance_m: 1.349038968491606
+- index: 28
+  image: observation_028.png
+  points: 96
+  mean_px: 0.30299209251650555
+  rms_px: 0.3248782870455508
+  max_px: 0.590392525109548
+  opencv_per_view_error: 0.3248782870455508
+  tilt_deg: 34.05808603538047
+  distance_m: 1.3514178276180584
+- index: 29
+  image: observation_029.png
+  points: 96
+  mean_px: 0.27574995977509054
+  rms_px: 0.2945288923533646
+  max_px: 0.5518215838742545
+  opencv_per_view_error: 0.2945288923533646
+  tilt_deg: 23.727412421925656
+  distance_m: 1.283668324527424
+- index: 30
+  image: observation_030.png
+  points: 96
+  mean_px: 0.2897029652631773
+  rms_px: 0.3124430312999903
+  max_px: 0.5950800338663883
+  opencv_per_view_error: 0.3124430312999903
+  tilt_deg: 29.18231361417971
+  distance_m: 1.2937984668017706
 field_of_view_deg:
-  horizontal: 69.97393621725654
-  vertical: 42.973445721012745
+  horizontal: 70.01379453612472
+  vertical: 43.06495886947771
 principal_point_offset_px:
-  x: 12.8447265625
-  y: 13.299041748046875
-aspect_ratio: 1.0000845655011867
-warnings:
-- Factory distortion coefficients are ALL ZERO. That is only correct if this colour stream is rectified
-  in hardware. Until scripts/check_distortion.py confirms it against real board views, treat this as an
-  untested assumption, not a measurement.
+  x: 18.284755886173684
+  y: 20.721191516503552
+aspect_ratio: 0.9984849352978347
+warnings: []
 camera_name: camera_3
 camera_serial: '327122075735'
-factory:
-  device_name: RealSense D435IF
-  sensor_name: RGB Camera
-  firmware_version: 5.17.0.10
-  librealsense_version: 2.58.4
-  rs_distortion_model: distortion.inverse_brown_conrady
-  stream: color 1280x720
+board:
+  tag_family: tag36h11
+  rows: 6
+  columns: 4
+  tag_size_m: 0.028
+  tag_spacing_m: 0.0084
+  first_tag_id: 0
+  verified_by_user: true
 environment:
   python: 3.12.3
   platform: Linux-6.17.0-1032-oem-x86_64-with-glibc2.39

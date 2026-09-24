@@ -30,10 +30,10 @@ development laptop and the robot PC, none of which open a camera or a robot.
 
 **Hardware status.** The three cameras have been enumerated and opened for real on
 `ur12e-flexlab`, at their configured resolutions and frame rates, through the project's
-own code path. `camera_1` now has usable intrinsics (see the next section). `camera_2`
-and `camera_3` have none yet, and the robot has not been driven by this software at all.
-The solve and selection stages remain exercised only against synthetic datasets and
-URSim.
+own code path. All three now have intrinsics (see the next section). What has **not**
+happened is anything involving the robot: no waypoint has been recorded, and the arm has
+not been driven by this software at all. The hand-eye solve, selection and validation
+stages remain exercised only against synthetic datasets and URSim.
 
 Motion code now exists — `jog_controller.py`, `robot_interface.enable_motion()` and the
 teleop scripts can command the arm. It is inert until you change `config/safety.yaml`
@@ -43,111 +43,86 @@ teleop scripts can command the arm. It is inert until you change `config/safety.
 
 ## What to do next
 
-Where this rig stands today, and the exact commands to move it forward. Everything here
-runs on the robot PC, in `~/camera_calibration`. Nothing in this section moves the robot.
+All three cameras now have intrinsics. Everything below runs on the robot PC, in
+`~/camera_calibration`.
 
-### Where `camera_1` stands
+### Where the intrinsics stand
 
-It has intrinsics, and they are **Intel's factory values, not a solve of ours**.
+| Camera | Source | Views | RMS | Notes |
+|---|---|---|---|---|
+| `camera_1` | factory (D405) | 24 | — | validated to 0.33 mm / 0.15° of board pose |
+| `camera_2` | **solved** | 30 | 0.2743 px | 9/9 cells, all edge bands |
+| `camera_3` | **solved** | 30 | 0.3905 px | 9/9 cells, tilt to 58° |
 
-A 24-view AprilTag calibration was run first and rejected. It came out at 0.88 px RMS
-against a 0.83 px corner-noise floor, with the whole top third of the frame empty, every
-view shot at 63–94 cm (outside the D405's 7–50 cm design range), and a focal length 1.1%
-below the factory value. That 1.1% is worth ~5 mm of board-pose error — half the
-project's own 10 mm validation budget — so the factory numbers are the better starting
-point. The rejected solve is archived, not deleted, under
-`data/camera_1/intrinsics/sessions/<timestamp>/`.
+`camera_1` uses Intel's factory values. Its own 24-view solve was rejected: 0.88 px RMS
+against a 0.83 px corner-noise floor, an empty top third, every view outside the D405's
+7–50 cm design range, and a focal length 1.1% below factory — worth ~5 mm of board pose
+against a 10 mm budget. The rejected solve is archived under
+`data/camera_1/intrinsics/sessions/`.
 
-The factory values were checked against those same 24 views and agree to 0.33 mm / 0.15°
-of board pose. That check could not certify the top of the frame, because the board never
-went there. Good enough to proceed; re-do it properly if the hold-out validation in
-Phase C later comes up short.
+`camera_2` and `camera_3` are real solves, and they had to be. Both D435IF colour streams
+report **all-zero distortion**, which turned out to be an unpopulated field rather than
+hardware rectification. Trusting those zeros would have cost a median 8.59 mm of board
+pose on camera_2, with 5 of 30 views blowing the 10 mm validation budget outright.
 
-### Where `camera_2` and `camera_3` stand
+The two independent units cross-confirm each other, which is the strongest evidence the
+solves found the real lens and not noise:
 
-They have **no intrinsics at all yet**, and there is a trap waiting.
+| | k1 | k2 | k3 | fx |
+|---|---|---|---|---|
+| `camera_2` | +0.157 | −0.504 | +0.485 | 904.31 |
+| `camera_3` | +0.147 | −0.485 | +0.466 | 913.78 |
 
-Both D435IF colour streams report **all-zero distortion coefficients**. That is either
-true (the stream is rectified in the ASIC) or the field was simply never filled in. The
-two cases look identical in `result.yaml`, and guessing wrong means every board pose near
-the frame edge is biased — which is exactly what hand-eye consumes. So the zeros get
-tested, not trusted.
+Same model, separately calibrated, distortion agreeing within ~4%.
 
-The test is cheap because it shares a rig with work you have to do anyway: `camera_2` and
-`camera_3` are eye-to-hand, so the board is bolted to the robot, and you sweep it across
-the frame by moving the arm — the same setup as the waypoint collection that follows.
+### Two limits to keep in mind
 
-### Step 1 — Write the factory intrinsics for both cameras
+**The image corners are extrapolated on both D435IFs.** Observed corners reached 89% of
+the corner radius on each. Past that the model gets aggressive — distortion shift roughly
+doubles in the last 11%, where there is no data (camera_2: 7.8 → 21.7 px; camera_3:
+8.1 → 18.5 px). Keep the board off the extreme corners during waypoint collection and you
+never enter that region.
+
+**`fx` is the loosest parameter on camera_2.** Formal σ says 0.2%, but split-half at
+n=15 spreads 10.7 px (1.2%); reality is nearer 0.5%. camera_3 is better conditioned
+(leave-one-out spread 2.78 px vs 6.80) because its tilt range ran to 58° rather than 38°.
+If camera_2's hold-out validation disappoints later, suspect `fx` first and add tilt.
+
+### Next: extrinsics
+
+Board is on the flange, which is what `camera_2` and `camera_3` need. Do those two first,
+then re-rig to the table for `camera_1` — one board move instead of two.
+
+Waypoint collection has to **read** the arm, and `safety.py` blocks any non-loopback
+address while `allow_physical_robot` is false. So `config/safety.yaml` needs:
+
+```yaml
+connection:
+  robot_ip: "<the arm's address>"     # currently 127.0.0.1, i.e. URSim
+  allow_physical_robot: true          # currently false
+  allow_motion: false                 # leave false; --read-only does not need it
+```
+
+Read the *Safety* section before changing either. In particular, this project's notes say
+the physical UR12e has not had its safety limits, collision checks, payload configuration
+or e-stop interlock commissioned. That is a prerequisite this repository cannot verify for
+you.
+
+Then, per camera:
 
 ```bash
-.venv/bin/python scripts/factory_intrinsics.py --camera camera_2
+.venv/bin/python scripts/collect_waypoints.py --camera camera_2 --target-count 30 --read-only
 ```
 
 ```bash
-.venv/bin/python scripts/factory_intrinsics.py --camera camera_3
+.venv/bin/python scripts/analyze_waypoints.py      --camera camera_2
+.venv/bin/python scripts/select_best_waypoints.py  --camera camera_2 --count 20
+.venv/bin/python scripts/solve_handeye.py          --camera camera_2 --selection best20
+.venv/bin/python scripts/verify_calibration.py     --camera camera_2
 ```
 
-Each prints a loud warning about the zero distortion and writes `result.yaml` stamped
-`source: factory`. Nothing is overwritten without asking.
-
-### Step 2 — Re-rig the board onto the robot flange
-
-`camera_2` and `camera_3` are **eye-to-hand**: the board is bolted to the robot and the
-cameras are fixed. This is the opposite of the `camera_1` setup. Get this wrong and every
-number downstream is confidently wrong. See *Before you start: this rig uses BOTH
-mountings*.
-
-### Step 3 — Collect ~15 views per camera and test the zeros
-
-One camera at a time. They share a USB 2.1 bus and cannot both stream.
-
-Preview first — `detection.minimum_sharpness` currently ships at 40.0, which is far too
-loose to catch a blurred frame. Note what a sharp frame actually scores on *this* camera
-and set the threshold from that:
-
-```bash
-.venv/bin/python scripts/preview_apriltag.py --camera camera_2
-```
-
-```bash
-.venv/bin/python scripts/collect_intrinsics.py --camera camera_2 --target-count 15
-```
-
-```bash
-.venv/bin/python scripts/check_distortion.py --camera camera_2
-```
-
-Then the same two commands for `camera_3`.
-
-**While collecting, push the board into all four edges of the frame — especially the
-top.** Distortion is zero at the image centre and only shows up out at the rim, so
-centre-heavy views cannot answer the question. `check_distortion.py` checks coverage
-first and reports `INCONCLUSIVE` rather than giving you a meaningless pass.
-
-What the verdict means:
-
-| Verdict | Exit | What to do |
-|---|---|---|
-| `CONFIRMED` | 0 | The zeros are real. Go to Phase B with the factory intrinsics. |
-| `MARGINAL` | 1 | Usable if your error budget has room; otherwise do a full solve. |
-| `REFUTED` | 1 | The lens is not distortion-free. Do a full solve (Step 4). |
-| `INCONCLUSIVE` | 3 | Your views could not decide it — too centre-heavy, or a starved edge. The output names which. Re-collect, covering that region. |
-
-### Step 4 — Only if the check refutes or is marginal
-
-```bash
-.venv/bin/python scripts/collect_intrinsics.py --camera camera_2
-.venv/bin/python scripts/solve_intrinsics.py   --camera camera_2
-```
-
-A full 20–40 view set, replacing the factory file with a real solve. Aim for RMS well
-under 0.5 px; read *STEPS 6–7* for what makes the difference.
-
-### Step 5 — Then continue with the normal process
-
-Once all three cameras have intrinsics you trust, pick up at **Phase B — waypoints**
-below. `camera_1` needs its board back **on the table** (eye-in-hand) for that phase;
-`camera_2` and `camera_3` keep it on the flange.
+`--read-only` means the software never commands the arm; you jog it by hand in freedrive
+and press `ENTER` to record. See *Phase B* and *Phase C* for what to watch.
 
 ---
 
