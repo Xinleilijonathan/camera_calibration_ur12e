@@ -1,0 +1,60 @@
+# FACTORY intrinsics for camera_2 (serial 327122073926).
+# Read from the camera's own flash -- NOT solved from board
+# observations. See `source` below before trusting these numbers.
+# These parameters belong to THIS camera only and must never be
+# reused for another camera, even one of the same model.
+# Valid only at 1280x720.
+timestamp: '2026-09-24T19:51:19.248+00:00'
+source: factory
+source_note: Read from the camera's own flash by scripts/factory_intrinsics.py. NOT solved from observations.
+  No reprojection error exists for these values because nothing was measured against a board.
+image_width: 1280
+image_height: 720
+observation_count: 0
+distortion_model: standard
+camera_matrix:
+- - 910.0308837890625
+  - 0.0
+  - 651.8279418945312
+- - 0.0
+  - 910.027099609375
+  - 376.5397033691406
+- - 0.0
+  - 0.0
+  - 1.0
+fx: 910.0308837890625
+fy: 910.027099609375
+cx: 651.8279418945312
+cy: 376.5397033691406
+distortion_coefficients:
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+field_of_view_deg:
+  horizontal: 70.23535781476177
+  vertical: 43.16677119696787
+principal_point_offset_px:
+  x: 11.82794189453125
+  y: 16.539703369140625
+aspect_ratio: 0.9999958417019083
+warnings:
+- Factory distortion coefficients are ALL ZERO. That is only correct if this colour stream is rectified
+  in hardware. Until scripts/check_distortion.py confirms it against real board views, treat this as an
+  untested assumption, not a measurement.
+camera_name: camera_2
+camera_serial: '327122073926'
+factory:
+  device_name: RealSense D435IF
+  sensor_name: RGB Camera
+  firmware_version: 5.17.0.10
+  librealsense_version: 2.58.4
+  rs_distortion_model: distortion.inverse_brown_conrady
+  stream: color 1280x720
+environment:
+  python: 3.12.3
+  platform: Linux-6.17.0-1032-oem-x86_64-with-glibc2.39
+  numpy: 2.5.3
+  opencv: 4.14.0
+  scipy: 1.18.1
