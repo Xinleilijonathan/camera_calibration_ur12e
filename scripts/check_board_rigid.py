@@ -94,8 +94,13 @@ def board_on_mount(records, camera_matrix, dist_coeffs, mode):
     result = hc.calibrate(list(records), mode, "park", camera_matrix,
                           dist_coeffs, cross_check=False, label="rigidity")
     X = np.asarray(result["transform"], dtype=np.float64)
-    transforms = [invert_transform(r.tcp_transform) @ X @ r.board_transform
-                  for r in records]
+    # Which product is constant depends on the mounting, so never hard-code one
+    # here: eye_to_hand holds T_flange_board still, eye_in_hand holds
+    # T_base_board still. Hard-coding the eye_to_hand form made every
+    # eye_in_hand set look like a board that slid a metre across the workcell.
+    transforms = hc.constant_transforms([r.tcp_transform for r in records],
+                                        [r.board_transform for r in records],
+                                        X, mode)
     return X, transforms
 
 
