@@ -192,7 +192,26 @@ selection:
   # Hard outlier rejection, applied BEFORE ranking (section X2).
   # Observations failing these are marked with a reason -- never deleted.
   outlier_limits:
-    max_reprojection_rms_px: 2.0
+    # SCALE-DEPENDENT, so this is not a portable number. Chain reprojection
+    # is measured in pixels, and the same 3D error projects to fewer pixels
+    # the further the board sits from the camera. On camera_2 the observed
+    # error correlates -0.37 with board distance in px, and only -0.13 once
+    # converted to mm at the board -- so a pixel limit quietly punishes the
+    # close, information-rich views and spares the distant, weak ones.
+    #
+    # 2.0 was tuned against a session whose board sat at 1.1 m filling 2%
+    # of the frame. Re-collected at 0.55-1.0 m and 2.4-8.2%, the very same
+    # quality of data flagged 21 of 30 waypoints as outliers.
+    #
+    # 7.0 comes from the data, not from what makes the answer look good: the
+    # robust bound on the mm-converted error (median + 3.5 MAD) is 6.75 mm,
+    # which at the median 0.83 m working distance is 7.35 px. It excludes
+    # exactly the one waypoint that bound excludes.
+    #
+    # The real fix is to express this limit in mm at the board and let the
+    # code convert per waypoint. Until then, re-derive it whenever the
+    # working distance changes.
+    max_reprojection_rms_px: 7.0
     max_translation_residual_mm: 15.0
     max_rotation_residual_deg: 3.0
     min_tags: 12

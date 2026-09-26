@@ -1,0 +1,18 @@
+Board was rigid throughout this session (verified: recovered board position
+correlates +0.87 with board distance, i.e. PnP bias, not movement).
+
+Archived for POSE GEOMETRY, not board movement. Three batches were collected
+and only the middle one had usable geometry:
+
+  wp  1-10  TCP span 105/114/85 mm, axes [1,.65,.41], board 1.07-1.21 m @ 2.2%
+            -> solved alone: 807 mm solver spread (degenerate)
+  wp 11-20  TCP span 441/320/247 mm, axes [1,.93,.75], board 0.47-1.02 m @ 2.5-9.5%
+            -> solved alone: 8.3 mm solver spread  (KEPT, left on disk)
+  wp 21-30  TCP span 296/76/91 mm, axes [1,.74,.57], board 0.61-0.90 m @ 3.2-7.3%
+            -> solved alone: 96.8 mm solver spread (Y and Z spans collapsed)
+
+No 20-point subset of the 30 reached the 10 mm solver-agreement threshold;
+40 random subsets gave a median of 18.2 mm and a best of 13.3 mm.
+
+Waypoints 11-20 remain in handeye/observations/ and are the base for the
+next batch, which resumes at number 21.
