@@ -24,19 +24,175 @@ next, and records the robot's *actual* measured state when you press the record 
 | 13–14 | Waypoint recording, pose-diversity analysis | done |
 | 15–19 | Preliminary solve, scoring, best-20 selection, final solve, validation | done |
 | 20–21 | Replay dry-run, docs/tests | done |
+| — | Intrinsics for all three cameras, on real data | done |
+| — | Extrinsics for all three cameras, on real data | done |
 
-Every script is implemented and covered by tests — 462 of them, all passing on both the
+Every script is implemented and covered by tests — 472 of them, all passing on both the
 development laptop and the robot PC, none of which open a camera or a robot.
 
-**Hardware status.** The three cameras have been enumerated and opened for real on
-`ur12e-flexlab`, at their configured resolutions and frame rates, through the project's
-own code path. What has **not** happened is a calibration run: no board has been measured,
-no intrinsics collected, and the robot has not been driven by this software at all. The
-solve and selection stages remain exercised only against synthetic datasets and URSim.
+**Hardware status.** All three cameras have intrinsics and extrinsics solved from
+real data on `ur12e-flexlab`: 30 hand-eye waypoints each, 90 in total, with the
+solve, selection and validation stages exercised against those rather than against
+synthetic datasets. See *Where the extrinsics stand* for the numbers.
+
+The arm has still **never been driven by this software**. Every waypoint was
+collected with `--read-only`, posed by hand in freedrive, with `allow_motion` false
+throughout; the software read the robot's measured state and never commanded it.
+`allow_physical_robot` was opened for those read-only sessions, which is why
+`config/safety.yaml` on the robot PC differs from the locked-down file this
+repository ships.
 
 Motion code now exists — `jog_controller.py`, `robot_interface.enable_motion()` and the
 teleop scripts can command the arm. It is inert until you change `config/safety.yaml`
 **and** type a confirmation at startup. Read the next section before you do either.
+
+---
+
+## What to do next
+
+All three cameras are fully calibrated. Everything below runs on the robot PC, in
+`~/camera_calibration`.
+
+### Where the intrinsics stand
+
+| Camera | Source | Views | RMS | Notes |
+|---|---|---|---|---|
+| `camera_1` | factory (D405) | 24 | — | validated to 0.33 mm / 0.15° of board pose |
+| `camera_2` | **solved** | 30 | 0.2743 px | 9/9 cells, all edge bands |
+| `camera_3` | **solved** | 30 | 0.3905 px | 9/9 cells, tilt to 58° |
+
+`camera_1` uses Intel's factory values. Its own 24-view solve was rejected: 0.88 px RMS
+against a 0.83 px corner-noise floor, an empty top third, every view outside the D405's
+7–50 cm design range, and a focal length 1.1% below factory — worth ~5 mm of board pose
+against a 10 mm budget. The rejected solve is archived under
+`data/camera_1/intrinsics/sessions/`.
+
+`camera_2` and `camera_3` are real solves, and they had to be. Both D435IF colour streams
+report **all-zero distortion**, which turned out to be an unpopulated field rather than
+hardware rectification. Trusting those zeros would have cost a median 8.59 mm of board
+pose on camera_2, with 5 of 30 views blowing the 10 mm validation budget outright.
+
+The two independent units cross-confirm each other, which is the strongest evidence the
+solves found the real lens and not noise:
+
+| | k1 | k2 | k3 | fx |
+|---|---|---|---|---|
+| `camera_2` | +0.157 | −0.504 | +0.485 | 904.31 |
+| `camera_3` | +0.147 | −0.485 | +0.466 | 913.78 |
+
+Same model, separately calibrated, distortion agreeing within ~4%.
+
+### Two limits to keep in mind
+
+**The image corners are extrapolated on both D435IFs.** Observed corners reached 89% of
+the corner radius on each. Past that the model gets aggressive — distortion shift roughly
+doubles in the last 11%, where there is no data (camera_2: 7.8 → 21.7 px; camera_3:
+8.1 → 18.5 px). Keep the board off the extreme corners during waypoint collection and you
+never enter that region.
+
+**`fx` is the loosest parameter on camera_2.** Formal σ says 0.2%, but split-half at
+n=15 spreads 10.7 px (1.2%); reality is nearer 0.5%. camera_3 is better conditioned
+(leave-one-out spread 2.78 px vs 6.80) because its tilt range ran to 58° rather than 38°.
+If camera_2's hold-out validation disappoints later, suspect `fx` first and add tilt.
+
+### Where the extrinsics stand
+
+All three are solved, from 30 waypoints each. The shipped result for every camera is
+`data/<camera>/handeye/final_result_all_30.yaml`.
+
+| Camera | Mounting | Solves | Accuracy | Median distance / tilt |
+|---|---|---|---|---|
+| `camera_1` | eye_in_hand | `T_flange_camera` | **0.80 mm** | 0.47 m / 42.4° |
+| `camera_2` | eye_to_hand | `T_base_camera` | **2.04 mm** | 0.93 m / 31.1° |
+| `camera_3` | eye_to_hand | `T_base_camera` | **2.68 mm** | 0.98 m / 23.9° |
+
+Those accuracies are **10-fold cross-validated**, not the hold-out figures the solver
+prints. The shipped `best_20` hold-out is not a hold-out in the usual sense: the ten
+"held-out" waypoints are exactly the ten selection discarded, so they are the worst by
+construction and the number reads pessimistically. camera_2's best-20 fit scored
+3.26 px / 4.22 mm that way against a true 0.89 px / 2.04 mm.
+
+Three findings worth carrying into any re-run:
+
+**The pixel gate ranks cameras backwards.** Chain reprojection is scale-dependent:
+1 px is 0.72 mm at camera_1's working distance and 1.08 mm at camera_3's. Depth error
+along the viewing ray barely reaches the image, so the camera that sits further out
+looks better in pixels while being worse in millimetres. Judge in mm at the board.
+The same argument is why `outlier_limits.max_reprojection_rms_px` had to move.
+
+**"The five solver methods disagree by up to 26 mm" is `andreff` alone.** Excluding it,
+the other four agree to 2.60 mm on camera_2 and 2.75 mm on camera_3. Read the spread
+without `andreff` before suspecting degenerate poses; on this rig they never were.
+
+**Selection earned its keep once and then stopped.** Refitting both policies inside
+each fold and scoring them on the same held-out waypoints, using every waypoint beat
+MAD-based selection on all three cameras. The MAD rule is relative, so it tightens as
+the data improves and starts discarding usable geometry rather than noise. Hence
+`--selection all`; the `best_20` results are kept beside the shipped ones for comparison.
+
+`camera_1` is the most accurate despite running on factory intrinsics with no
+reprojection error of its own, because it works at half the distance with the widest
+tilt spread. Working distance and tilt outweighed the intrinsics source.
+
+### Re-running the extrinsics
+
+Board is on the flange, which is what `camera_2` and `camera_3` need. Do those two first,
+then re-rig to the table for `camera_1` — one board move instead of two.
+
+Waypoint collection has to **read** the arm, and `safety.py` blocks any non-loopback
+address while `allow_physical_robot` is false. So `config/safety.yaml` needs:
+
+```yaml
+connection:
+  robot_ip: "<the arm's address>"     # currently 127.0.0.1, i.e. URSim
+  allow_physical_robot: true          # currently false
+  allow_motion: false                 # leave false; --read-only does not need it
+```
+
+Read the *Safety* section before changing either. In particular, this project's notes say
+the physical UR12e has not had its safety limits, collision checks, payload configuration
+or e-stop interlock commissioned. That is a prerequisite this repository cannot verify for
+you.
+
+Then, per camera:
+
+Collect in batches and check the board between them, rather than discovering
+a problem after 30 poses:
+
+```bash
+.venv/bin/python scripts/collect_waypoints.py --camera camera_2 --target-count 10 --read-only
+```
+
+```bash
+.venv/bin/python scripts/check_board_rigid.py --camera camera_2
+```
+
+Then add the next batch with `--resume` and re-check, to 30:
+
+```bash
+.venv/bin/python scripts/collect_waypoints.py --camera camera_2 --target-count 20 --read-only --resume
+```
+
+`check_board_rigid.py` exists because camera_2's first session was lost to it.
+The board worked loose partway through; every frame still passed every
+per-frame check -- crisp PnP, sharp images, nothing rejected -- and the
+dataset was still unusable, because hand-eye assumes the board-to-mount
+transform is constant. It only surfaced at solve time, with the five solvers
+disagreeing by 45 mm. The check recovers where the board sits on its mount at
+each waypoint and looks for a step. Measured on synthetic sets built from real
+poses, it catches a 10 mm slip 8 times out of 8 even in a 10-waypoint batch; a
+5 mm slip in a small batch is roughly a coin flip. It is a safety net, not a
+guarantee -- the fix for a loose board is a better mount.
+
+```bash
+.venv/bin/python scripts/analyze_waypoints.py      --camera camera_2
+.venv/bin/python scripts/select_best_waypoints.py  --camera camera_2 --count 20
+.venv/bin/python scripts/solve_handeye.py          --camera camera_2 --selection best20
+.venv/bin/python scripts/verify_calibration.py     --camera camera_2
+```
+
+`--read-only` means the software never commands the arm; you jog it by hand in freedrive
+and press `ENTER` to record. See *Phase B* and *Phase C* for what to watch.
 
 ---
 
@@ -62,9 +218,10 @@ Read this before the robot is ever involved.
   `--read-only` and move the arm by hand (freedrive). The robot is then read, never
   commanded. This is the recommended way to take a first dataset.
 
-Three scripts never command the robot under any configuration, because they contain no
-motion code: `list_cameras.py`, `preview_apriltag.py`, `collect_intrinsics.py`.
-`verify_calibration.py` reads the robot but never commands it.
+Five scripts never command the robot under any configuration, because they contain no
+motion code: `list_cameras.py`, `preview_apriltag.py`, `collect_intrinsics.py`,
+`factory_intrinsics.py` and `check_distortion.py`. `verify_calibration.py` reads the
+robot but never commands it.
 
 ---
 
@@ -320,6 +477,15 @@ resulting RMS in `data/camera_1/intrinsics/result.yaml` — under ~0.5 px is hea
 
 Repeat for `camera_2` and `camera_3`. Intrinsics are never shared between cameras.
 
+**Or start from the factory values.** Every RealSense carries its own calibration, and on
+a low-distortion module it can beat a mediocre solve. See *What to do next* for when that
+is the right call, and *STEPS 6–7* for the two scripts involved:
+
+```bash
+.venv/bin/python scripts/factory_intrinsics.py --camera camera_1   # write them
+.venv/bin/python scripts/check_distortion.py   --camera camera_1   # then test them
+```
+
 ### Phase B — waypoints (robot involved, still no motion commands)
 
 Re-rig the board first if needed: **on the table** for `camera_1`, **on the flange** for
@@ -485,6 +651,66 @@ Then repeat, completely independently, for `camera_2` and `camera_3`. **Intrinsi
 never shared between cameras**, even if the cameras are the same model — sensor placement
 and lens variation are per-unit.
 
+#### The factory alternative
+
+Every RealSense stores its own calibration. `factory_intrinsics.py` reads it and writes
+`result.yaml` in exactly the format the solver produces, so everything downstream consumes
+it unchanged:
+
+```bash
+.venv/bin/python scripts/factory_intrinsics.py --camera camera_1
+```
+
+`--dry-run` prints the values without writing. `--force` archives an existing
+`result.yaml` to `intrinsics/sessions/<timestamp>/` instead of prompting. The file is
+stamped `source: factory` and `observation_count: 0`, so it can never be mistaken for a
+solve, and it carries no reprojection error because nothing was measured.
+
+This is worth doing when your own solve is poor — a small board, a narrow tilt range, or
+views crowded into the middle of the frame will produce a *confident* result that is
+wrong by more than the factory value is. It is not worth doing when you have a good solve;
+a proper calibration of your specific unit at your specific resolution beats a generic one.
+
+Two things to know before trusting factory values:
+
+* **Some colour streams report all-zero distortion.** That is either correct (the stream
+  is rectified in hardware) or an unpopulated field. Both look the same in the file.
+* **librealsense labels the model `inverse_brown_conrady`**, which is not OpenCV's
+  convention. On the D405 the coefficients were checked against an independent OpenCV
+  solve over 24 views and used directly; flipping their sign made the fit markedly worse
+  (0.898 → 1.305 px RMS). Re-check that on any module whose behaviour you do not know.
+
+#### Testing factory values against your own board
+
+```bash
+.venv/bin/python scripts/check_distortion.py --camera camera_1
+```
+
+Holds `fx, fy, cx, cy` frozen, refits the distortion terms against your collected
+observations, and reports how far the two models disagree. It needs a set of observations
+to work from — collect ~15 views first.
+
+**The verdict is measured in board pose (mm and degrees), not pixels**, against the budget
+in `calibration.yaml → verification`. Both pixel proxies mislead here, and the script
+prints them only as explanation:
+
+* *Reprojection RMS understates it.* Re-fitting the pose absorbs much of a distortion
+  change — which is precisely the damage. The residual stays flat while the pose silently
+  goes wrong, and hand-eye consumes the pose, not the residual.
+* *Raw pixel disagreement overstates it.* Outside the region the board visited, the
+  refitted coefficients are unconstrained and the models drift apart by whatever the
+  extrapolation happens to do.
+
+It also refuses to certify what your data cannot support. Distortion is zero at the
+principal point and grows with r⁴, so it checks radial reach **and** that each of the four
+edge bands was actually visited — a set that only ever swept left and right reaches a high
+radius while leaving the top and bottom unconstrained. Data that cannot decide the question
+returns `INCONCLUSIVE` (exit 3) rather than a meaningless pass.
+
+`--budget-fraction` sets how much of the verification budget the intrinsics may consume
+before the reference stops counting as confirmed (default `0.2`; twice that is the
+`MARGINAL` band).
+
 ### STEPS 8–12 — Collect 30 waypoints for camera 1
 
 ```bash
@@ -607,7 +833,9 @@ data/camera_1/
 ├── intrinsics/
 │   ├── images/              raw intrinsic captures
 │   ├── observations/        per-image detection metadata
+│   ├── sessions/<timestamp>/  archived earlier sets and result.yaml files
 │   └── result.yaml          K, distortion, resolution, error statistics
+│                            (or factory values, stamped `source: factory`)
 └── handeye/
     ├── images/              waypoint_001.png ... waypoint_030.png
     ├── observations/        waypoint_001.yaml ... (robot state + detection)
@@ -702,8 +930,14 @@ metadata, because the metadata is the commit point every loader keys off.
 | `handeye_calibration.py` | The hand-eye solve, method cross-check, hold-out validation |
 | `ui_overlay.py` | The preview overlay drawing helpers |
 
-Plus `scripts/make_board.py`, which emits a print-ready, exactly-scaled PDF of
-the configured board so the print and the solver cannot disagree.
+Plus three standalone scripts with no module behind them:
+
+| Script | Responsibility |
+|---|---|
+| `scripts/make_board.py` | Print-ready, exactly-scaled board PDF, so the print and the solver cannot disagree |
+| `scripts/factory_intrinsics.py` | Reads a RealSense module's own calibration into `result.yaml`, stamped `source: factory` |
+| `scripts/check_distortion.py` | Refits distortion against collected views and scores the disagreement in board pose |
+| `scripts/check_board_rigid.py` | Detects a board that moved on its mount mid-collection, which no per-frame check can see |
 
 ---
 

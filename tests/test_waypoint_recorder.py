@@ -470,3 +470,74 @@ def test_save_initial_center_includes_the_safety_envelope(paths):
     data = load_yaml(save_initial_center(paths, FakeCamera(), state(),
                                          envelope=FakeEnvelope()))
     assert data["safety"] == {"allow_motion": False}
+
+
+# --------------------------------------------------------------------------
+# Numbering on resume
+#
+# Regression: the collection loop took the next number from how many records
+# it held, not from the highest number among them. Resuming onto a set whose
+# first ten had been archived -- so the files started at 011 -- made the count
+# say 10 and the next waypoint 011, overwriting the preserved batch one file
+# per keypress until ten good waypoints were gone. Nothing warned; the session
+# reported success.
+# --------------------------------------------------------------------------
+
+def test_next_number_follows_the_highest_not_the_count(paths):
+    recorder = make_recorder(paths)
+    for number in (11, 12, 13):
+        recorder.record(number)
+    assert len(recorder.records) == 3
+    assert recorder.next_number() == 14
+
+
+def test_next_number_is_one_on_an_empty_set(paths):
+    assert make_recorder(paths).next_number() == 1
+
+
+def test_resuming_a_gapped_set_appends_instead_of_overwriting(paths):
+    recorder = make_recorder(paths)
+    for number in (11, 12, 13):
+        recorder.record(number)
+    _, before = written(paths)
+
+    # A fresh recorder over the same directory, as --resume builds it.
+    resumed = make_recorder(paths)
+    for record in load_waypoints(paths):
+        resumed.records.append(record)
+    resumed.record(resumed.next_number())
+
+    _, after = written(paths)
+    assert set(before).issubset(set(after)), "resuming destroyed existing waypoints"
+    assert len(after) == 4
+    assert "waypoint_014.yaml" in after
+
+
+def test_next_number_backs_off_after_undo(paths):
+    recorder = make_recorder(paths)
+    for number in (11, 12):
+        recorder.record(number)
+    recorder.undo_last()
+    assert recorder.next_number() == 12
+
+
+def test_resume_does_not_overwrite_when_count_lands_inside_the_range(paths):
+    """The exact shape of the failure: ten records numbered 11..20.
+
+    count + 1 == 11, which is an existing file, so the old numbering wrote
+    straight over waypoint_011 and kept going.
+    """
+    recorder = make_recorder(paths)
+    for number in range(11, 21):
+        recorder.record(number)
+    first = (paths.handeye_observations / "waypoint_011.yaml").read_text()
+
+    resumed = make_recorder(paths)
+    for record in load_waypoints(paths):
+        resumed.records.append(record)
+    assert resumed.next_number() == 21, "count+1 would be 11 and clobber the set"
+
+    resumed.record(resumed.next_number())
+    assert (paths.handeye_observations / "waypoint_011.yaml").read_text() == first
+    _, names = written(paths)
+    assert len(names) == 11

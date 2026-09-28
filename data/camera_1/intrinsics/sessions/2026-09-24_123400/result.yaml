@@ -1,0 +1,276 @@
+# Intrinsic calibration for camera_1 (serial 260522273667).
+# These parameters belong to THIS camera only and must never be
+# reused for another camera, even one of the same model.
+# Valid only at 1280x720.
+timestamp: '2026-09-24T19:14:50.713+00:00'
+image_width: 1280
+image_height: 720
+observation_count: 24
+distortion_model: standard
+camera_matrix:
+- - 648.8817979602672
+  - 0.0
+  - 626.7879254011555
+- - 0.0
+  - 650.3913662365458
+  - 365.0543909600461
+- - 0.0
+  - 0.0
+  - 1.0
+fx: 648.8817979602672
+fy: 650.3913662365458
+cx: 626.7879254011555
+cy: 365.0543909600461
+distortion_coefficients:
+- -0.0541204776431177
+- 0.051255281739133685
+- -0.00018702393458200177
+- -0.00011590934173742908
+- -0.016764726359167485
+rms_reprojection_error_px: 0.8835181773823583
+mean_reprojection_error_px: 0.8390362361087347
+median_reprojection_error_px: 0.8155291258144568
+max_reprojection_error_px: 1.7437990030922288
+std_reprojection_error_px: 0.2768078110558509
+total_points: 2304
+per_observation:
+- index: 1
+  image: observation_001.png
+  points: 96
+  mean_px: 0.7902024976898542
+  rms_px: 0.8136416760140222
+  max_px: 1.3490424921694124
+  opencv_per_view_error: 0.813641676014022
+  tilt_deg: 28.68734580109162
+  distance_m: 0.8553497675247714
+- index: 2
+  image: observation_002.png
+  points: 96
+  mean_px: 0.8291000380092788
+  rms_px: 0.8541100730872769
+  max_px: 1.3861363667618403
+  opencv_per_view_error: 0.8541100730872769
+  tilt_deg: 28.871158767291785
+  distance_m: 0.8465345985753199
+- index: 3
+  image: observation_003.png
+  points: 96
+  mean_px: 0.8515429822161454
+  rms_px: 0.8778420448561891
+  max_px: 1.381390741701826
+  opencv_per_view_error: 0.8778420448561891
+  tilt_deg: 26.73057766815434
+  distance_m: 0.8879697646690364
+- index: 4
+  image: observation_004.png
+  points: 96
+  mean_px: 0.7377136589362477
+  rms_px: 0.7643483626572181
+  max_px: 1.3085074350132295
+  opencv_per_view_error: 0.7643483626572181
+  tilt_deg: 32.56264877105707
+  distance_m: 0.8002004954810082
+- index: 5
+  image: observation_005.png
+  points: 96
+  mean_px: 0.7447340692996662
+  rms_px: 0.7633604108500072
+  max_px: 1.2255745950745476
+  opencv_per_view_error: 0.7633604108500072
+  tilt_deg: 29.147114142281655
+  distance_m: 0.8619917909512257
+- index: 6
+  image: observation_006.png
+  points: 96
+  mean_px: 0.9088543573698168
+  rms_px: 0.9414118572122496
+  max_px: 1.4960960643842252
+  opencv_per_view_error: 0.9414118572122498
+  tilt_deg: 27.939638251018046
+  distance_m: 0.8648299896319235
+- index: 7
+  image: observation_007.png
+  points: 96
+  mean_px: 0.8249091065995972
+  rms_px: 0.8486414407940589
+  max_px: 1.3063442206227334
+  opencv_per_view_error: 0.8486414407940589
+  tilt_deg: 22.644631903893007
+  distance_m: 0.9364847287822643
+- index: 8
+  image: observation_008.png
+  points: 96
+  mean_px: 0.9463239854270822
+  rms_px: 0.9749292670399594
+  max_px: 1.6009505477497827
+  opencv_per_view_error: 0.9749292670399594
+  tilt_deg: 17.249159809370074
+  distance_m: 0.7708658733303032
+- index: 9
+  image: observation_009.png
+  points: 96
+  mean_px: 1.027840673128135
+  rms_px: 1.0665306360104059
+  max_px: 1.640387358927889
+  opencv_per_view_error: 1.0665306360104059
+  tilt_deg: 32.69996918903576
+  distance_m: 0.6645791779640462
+- index: 10
+  image: observation_010.png
+  points: 96
+  mean_px: 1.0594840620344608
+  rms_px: 1.0919135639334974
+  max_px: 1.6541857510761229
+  opencv_per_view_error: 1.0919135639334974
+  tilt_deg: 27.51507944983466
+  distance_m: 0.7102874590856597
+- index: 11
+  image: observation_011.png
+  points: 96
+  mean_px: 1.0657554418664754
+  rms_px: 1.0950862073723688
+  max_px: 1.647075286484576
+  opencv_per_view_error: 1.0950862073723688
+  tilt_deg: 21.957321030943483
+  distance_m: 0.7549079240570963
+- index: 12
+  image: observation_012.png
+  points: 96
+  mean_px: 0.9873330596079265
+  rms_px: 1.0162273514534488
+  max_px: 1.5285769783416243
+  opencv_per_view_error: 1.016227351453449
+  tilt_deg: 19.251808840533098
+  distance_m: 0.68253569220744
+- index: 13
+  image: observation_013.png
+  points: 96
+  mean_px: 1.0721336038657452
+  rms_px: 1.1087980931107464
+  max_px: 1.7437990030922288
+  opencv_per_view_error: 1.1087980931107464
+  tilt_deg: 27.556881663667802
+  distance_m: 0.6434843564137751
+- index: 14
+  image: observation_014.png
+  points: 96
+  mean_px: 1.0691632924990753
+  rms_px: 1.1057254329668627
+  max_px: 1.59735580214248
+  opencv_per_view_error: 1.1057254329668627
+  tilt_deg: 23.6156886659448
+  distance_m: 0.6741519737513495
+- index: 15
+  image: observation_015.png
+  points: 96
+  mean_px: 0.9981514283663234
+  rms_px: 1.0301468747118978
+  max_px: 1.5099625409677837
+  opencv_per_view_error: 1.0301468747118978
+  tilt_deg: 27.771210352780095
+  distance_m: 0.6339123518797986
+- index: 16
+  image: observation_016.png
+  points: 96
+  mean_px: 0.6504214959764032
+  rms_px: 0.6957681147619683
+  max_px: 1.3117527493968248
+  opencv_per_view_error: 0.6957681147619683
+  tilt_deg: 22.635001787370648
+  distance_m: 0.6290803837133827
+- index: 17
+  image: observation_017.png
+  points: 96
+  mean_px: 0.688992891029045
+  rms_px: 0.7175053513919837
+  max_px: 1.0620716116221312
+  opencv_per_view_error: 0.7175053513919838
+  tilt_deg: 22.88917212452048
+  distance_m: 0.6751741572527322
+- index: 18
+  image: observation_018.png
+  points: 96
+  mean_px: 0.6900390175156136
+  rms_px: 0.7201856306682815
+  max_px: 1.1303442255631417
+  opencv_per_view_error: 0.7201856306682815
+  tilt_deg: 25.927144687047228
+  distance_m: 0.7029795869584555
+- index: 19
+  image: observation_019.png
+  points: 96
+  mean_px: 0.7690067940892448
+  rms_px: 0.8090265678951849
+  max_px: 1.484856613937
+  opencv_per_view_error: 0.8090265678951849
+  tilt_deg: 29.99228099379106
+  distance_m: 0.7988138260375478
+- index: 20
+  image: observation_020.png
+  points: 96
+  mean_px: 0.7295676310882268
+  rms_px: 0.7740514406136036
+  max_px: 1.4294655540558674
+  opencv_per_view_error: 0.7740514406136036
+  tilt_deg: 35.496759744390125
+  distance_m: 0.7795675170509142
+- index: 21
+  image: observation_021.png
+  points: 96
+  mean_px: 0.652991936342303
+  rms_px: 0.6919074495126134
+  max_px: 1.2384195121099781
+  opencv_per_view_error: 0.6919074495126134
+  tilt_deg: 36.9647908742497
+  distance_m: 0.8052157624838648
+- index: 22
+  image: observation_022.png
+  points: 96
+  mean_px: 0.6640522110521383
+  rms_px: 0.6953154918233799
+  max_px: 1.1932925752629442
+  opencv_per_view_error: 0.6953154918233799
+  tilt_deg: 37.802549409629144
+  distance_m: 0.8101506864493364
+- index: 23
+  image: observation_023.png
+  points: 96
+  mean_px: 0.6646771273444799
+  rms_px: 0.6984312574705683
+  max_px: 1.2346368375120675
+  opencv_per_view_error: 0.6984312574705683
+  tilt_deg: 37.91459116178313
+  distance_m: 0.8431268973510946
+- index: 24
+  image: observation_024.png
+  points: 96
+  mean_px: 0.7138783052563484
+  rms_px: 0.7431548356998113
+  max_px: 1.2762631855392006
+  opencv_per_view_error: 0.7431548356998113
+  tilt_deg: 36.87100436223008
+  distance_m: 0.882319609076678
+field_of_view_deg:
+  horizontal: 89.21035197577073
+  vertical: 57.93018594427795
+principal_point_offset_px:
+  x: -13.212074598844538
+  y: 5.054390960046078
+aspect_ratio: 1.0023264148894664
+warnings: []
+camera_name: camera_1
+camera_serial: '260522273667'
+board:
+  tag_family: tag36h11
+  rows: 6
+  columns: 4
+  tag_size_m: 0.028
+  tag_spacing_m: 0.0084
+  first_tag_id: 0
+  verified_by_user: true
+environment:
+  python: 3.12.3
+  platform: Linux-6.17.0-1032-oem-x86_64-with-glibc2.39
+  numpy: 2.5.3
+  opencv: 4.14.0
+  scipy: 1.18.1

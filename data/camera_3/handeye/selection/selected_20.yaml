@@ -1,0 +1,56 @@
+# Waypoints chosen for the FINAL hand-eye calibration.
+camera_name: camera_3
+camera_serial: '327122075735'
+timestamp: '2026-09-26T18:33:48.378+00:00'
+selection_mode: best_error_with_diversity
+weights:
+  reprojection_rms: 0.5
+  handeye_translation: 0.25
+  handeye_rotation: 0.25
+diversity_threshold_translation_mm: 15.0
+diversity_threshold_rotation_deg: 3.0
+threshold_relaxation_factor: 1.0
+note: diversity thresholds satisfied at 100% of the configured separation
+count: 20
+selected_waypoints:
+- waypoint_001
+- waypoint_002
+- waypoint_003
+- waypoint_004
+- waypoint_005
+- waypoint_006
+- waypoint_007
+- waypoint_008
+- waypoint_009
+- waypoint_010
+- waypoint_011
+- waypoint_013
+- waypoint_014
+- waypoint_015
+- waypoint_016
+- waypoint_018
+- waypoint_021
+- waypoint_023
+- waypoint_024
+- waypoint_028
+selected_numbers:
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+- 7
+- 8
+- 9
+- 10
+- 11
+- 13
+- 14
+- 15
+- 16
+- 18
+- 21
+- 23
+- 24
+- 28

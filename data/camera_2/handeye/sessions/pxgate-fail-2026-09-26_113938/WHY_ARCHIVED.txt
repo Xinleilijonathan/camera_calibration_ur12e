@@ -1,0 +1,38 @@
+Archived 2026-09-26. Collected 2026-09-24. 30 waypoints, board bolted to the
+flange in the PREVIOUS mounting -- the board has since been removed and
+re-bolted, so this set can never be resumed or merged with a later one.
+
+This calibration was NOT bad. It failed exactly one gate:
+
+    hold-out reprojection  2.70 px   vs  maximum_validation_reprojection_px 2.0
+    hold-out translation   2.58 mm mean / 4.33 max   vs 10 mm   PASS
+    hold-out rotation      1.45 deg max              vs 2 deg   PASS
+
+It is being re-collected because the one gate it failed is the one we have the
+least confidence in, and because the board had to come off the flange anyway.
+
+What the camera_3 session (2026-09-26) taught us, which this set predates:
+
+  * The px gate is scale-dependent and ranks these two cameras BACKWARDS.
+    camera_2 sits at 0.83 m median (1 px = 0.923 mm); camera_3 at 0.98 m
+    (1 px = 1.077 mm). By the real mm budget camera_2 is the BETTER of the
+    two -- 2.58 mm hold-out vs camera_3's 4.25 mm -- yet camera_2 fails the
+    px gate and camera_3 passes it. Depth error along the viewing ray barely
+    shows up in reprojection, so the further camera looks better in px while
+    being worse in 3D. Same argument as the outlier_limits comment in
+    config/calibration.yaml, now with cross-camera evidence.
+
+  * The "five solvers disagree" warning is driven by andreff alone. Here the
+    other four agree to 3.51 mm; on camera_3, to 4.29 mm. Read the spread
+    with andreff excluded before suspecting degeneracy.
+
+Pose statistics of this set, for the re-collection to beat:
+    distance  0.55 / 0.83 / 1.00 m   (min / median / max)
+    tilt       2.9 / 21.0 / 52.4 deg
+    relative rotation angle: median 39.3 deg, max 93.9
+    rotation-axis anisotropy 1.4 (1 = isotropic; camera_3 was 1.9)
+
+Aim the re-collection closer and more tilted: pull the median distance in
+toward 0.7 m and raise the median tilt well above 21 deg. fx is camera_2's
+loosest intrinsic parameter (split-half at n=15 spreads 1.2%), and tilt is
+what constrains it.

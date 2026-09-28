@@ -1,0 +1,90 @@
+# Waypoints NOT used in the final fit, each with a reason.
+camera_name: camera_2
+timestamp: '2026-09-24T23:03:23.262+00:00'
+count: 21
+note: These observations remain on disk in full. They are excluded from the final fit and used as the
+  hold-out validation set.
+waypoint_011:
+  reason: reprojection RMS 5.94 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_012:
+  reason: reprojection RMS 3.67 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_013:
+  reason: reprojection RMS 3.22 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_014:
+  reason: reprojection RMS 2.44 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_017:
+  reason: reprojection RMS 2.61 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_018:
+  reason: reprojection RMS 3.65 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_020:
+  reason: reprojection RMS 2.27 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_021:
+  reason: reprojection RMS 3.96 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_022:
+  reason: reprojection RMS 4.98 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_023:
+  reason: reprojection RMS 4.71 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_024:
+  reason: reprojection RMS 4.84 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_025:
+  reason: reprojection RMS 6.84 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_030:
+  reason: reprojection RMS 2.10 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_031:
+  reason: reprojection RMS 3.36 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_033:
+  reason: reprojection RMS 3.26 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_034:
+  reason: reprojection RMS 4.10 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_035:
+  reason: reprojection RMS 3.70 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_036:
+  reason: reprojection RMS 4.05 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_037:
+  reason: reprojection RMS 6.42 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_038:
+  reason: reprojection RMS 3.98 px > 2.00
+  outlier: true
+  combined_score: null
+waypoint_039:
+  reason: reprojection RMS 8.62 px > 2.00
+  outlier: true
+  combined_score: null

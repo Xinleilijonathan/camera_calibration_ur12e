@@ -1,0 +1,57 @@
+# FACTORY intrinsics for camera_1 (serial 260522273667).
+# Read from the camera's own flash -- NOT solved from board
+# observations. See `source` below before trusting these numbers.
+# These parameters belong to THIS camera only and must never be
+# reused for another camera, even one of the same model.
+# Valid only at 1280x720.
+timestamp: '2026-09-24T19:34:00.782+00:00'
+source: factory
+source_note: Read from the camera's own flash by scripts/factory_intrinsics.py. NOT solved from observations.
+  No reprojection error exists for these values because nothing was measured against a board.
+image_width: 1280
+image_height: 720
+observation_count: 0
+distortion_model: standard
+camera_matrix:
+- - 656.248046875
+  - 0.0
+  - 629.8092041015625
+- - 0.0
+  - 655.59228515625
+  - 363.4522705078125
+- - 0.0
+  - 0.0
+  - 1.0
+fx: 656.248046875
+fy: 655.59228515625
+cx: 629.8092041015625
+cy: 363.4522705078125
+distortion_coefficients:
+- -0.05486779659986496
+- 0.057931751012802124
+- 0.0003447499475441873
+- 0.00032721570460125804
+- -0.019563160836696625
+field_of_view_deg:
+  horizontal: 88.5637073675146
+  vertical: 57.5442943044218
+principal_point_offset_px:
+  x: -10.1907958984375
+  y: 3.4522705078125
+aspect_ratio: 0.9990007410736341
+warnings: []
+camera_name: camera_1
+camera_serial: '260522273667'
+factory:
+  device_name: RealSense D405
+  sensor_name: Stereo Module
+  firmware_version: 5.15.1.55
+  librealsense_version: 2.58.4
+  rs_distortion_model: distortion.inverse_brown_conrady
+  stream: color 1280x720
+environment:
+  python: 3.12.3
+  platform: Linux-6.17.0-1032-oem-x86_64-with-glibc2.39
+  numpy: 2.5.3
+  opencv: 4.14.0
+  scipy: 1.18.1

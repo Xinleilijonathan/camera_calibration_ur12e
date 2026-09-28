@@ -174,7 +174,13 @@ class CollectionSession:
             self.rejected_attempts += 1
             return
 
-        number = self.recorded + 1
+        # From the highest number already stored, NOT from how many there are.
+        # Those agree only while the set runs 1..N with no gaps. Resuming onto
+        # a set that starts at 11 (because 1-10 were archived) made the count
+        # say 10, so the next waypoint was written as 011 -- silently
+        # overwriting the batch the archive was meant to preserve, one file per
+        # keypress, until ten good waypoints were gone.
+        number = self.recorder.next_number()
         try:
             record = self.recorder.record(number)
         except RecordingRejected as exc:

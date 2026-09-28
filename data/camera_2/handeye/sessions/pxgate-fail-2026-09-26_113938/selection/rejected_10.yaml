@@ -1,0 +1,46 @@
+# Waypoints NOT used in the final fit, each with a reason.
+camera_name: camera_2
+timestamp: '2026-09-24T23:06:10.215+00:00'
+count: 10
+note: These observations remain on disk in full. They are excluded from the final fit and used as the
+  hold-out validation set.
+waypoint_011:
+  reason: 'redundant pose: too close to a selected waypoint'
+  outlier: false
+  combined_score: 0.82437
+waypoint_013:
+  reason: 'redundant pose: too close to a selected waypoint'
+  outlier: false
+  combined_score: 0.57654
+waypoint_022:
+  reason: 'redundant pose: too close to a selected waypoint'
+  outlier: false
+  combined_score: 0.69827
+waypoint_024:
+  reason: 'redundant pose: too close to a selected waypoint'
+  outlier: false
+  combined_score: 0.61962
+waypoint_025:
+  reason: 'redundant pose: too close to a selected waypoint'
+  outlier: false
+  combined_score: 0.76249
+waypoint_031:
+  reason: 'redundant pose: too close to a selected waypoint'
+  outlier: false
+  combined_score: 0.57523
+waypoint_034:
+  reason: 'redundant pose: too close to a selected waypoint'
+  outlier: false
+  combined_score: 0.52437
+waypoint_035:
+  reason: 'redundant pose: too close to a selected waypoint'
+  outlier: false
+  combined_score: 0.56132
+waypoint_037:
+  reason: 'redundant pose: too close to a selected waypoint'
+  outlier: false
+  combined_score: 0.66913
+waypoint_039:
+  reason: reprojection RMS 8.62 px > 7.00
+  outlier: true
+  combined_score: null

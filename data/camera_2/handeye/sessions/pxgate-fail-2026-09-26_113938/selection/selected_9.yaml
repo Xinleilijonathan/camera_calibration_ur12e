@@ -1,0 +1,35 @@
+# Waypoints chosen for the FINAL hand-eye calibration.
+camera_name: camera_2
+camera_serial: '327122073926'
+timestamp: '2026-09-24T23:03:23.254+00:00'
+selection_mode: best_error_with_diversity
+weights:
+  reprojection_rms: 0.5
+  handeye_translation: 0.25
+  handeye_rotation: 0.25
+diversity_threshold_translation_mm: 2.521049999999999
+diversity_threshold_rotation_deg: 0.5042099999999998
+threshold_relaxation_factor: 0.16806999999999994
+note: diversity thresholds could not be met even at 17% strength; the last 0 were added on score alone.
+  The pose set lacks geometric spread.
+count: 9
+selected_waypoints:
+- waypoint_015
+- waypoint_016
+- waypoint_019
+- waypoint_026
+- waypoint_027
+- waypoint_028
+- waypoint_029
+- waypoint_032
+- waypoint_040
+selected_numbers:
+- 15
+- 16
+- 19
+- 26
+- 27
+- 28
+- 29
+- 32
+- 40

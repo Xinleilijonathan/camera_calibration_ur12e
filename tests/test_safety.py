@@ -17,8 +17,21 @@ from safety import (JointLimits, MotionLimits, ROBOT_MODE_RUNNING,
 
 
 def base_config():
+    """Shipped structure, but with the connection block pinned locked-down.
+
+    The interlock tests below exercise the LOGIC, and must keep doing so on a
+    cell whose safety.yaml has been deliberately opened for a real robot.
+    Reading the live file unpinned turned three of them into no-ops the moment
+    this rig was commissioned: `test_physical_ip_is_refused_while_the_flag_is_
+    false` inherited allow_physical_robot: true and stopped asserting anything.
+    Deployment posture is covered separately, by TestShippedDefaults.
+    """
     config = yaml.safe_load(SAFETY_CONFIG.read_text())
     config["waypoint_collection"] = {"stationary_velocity_threshold": 0.005}
+    config["connection"] = {**config["connection"],
+                            "robot_ip": "127.0.0.1",
+                            "allow_physical_robot": False,
+                            "allow_motion": False}
     return config
 
 
