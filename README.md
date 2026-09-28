@@ -24,16 +24,23 @@ next, and records the robot's *actual* measured state when you press the record 
 | 13–14 | Waypoint recording, pose-diversity analysis | done |
 | 15–19 | Preliminary solve, scoring, best-20 selection, final solve, validation | done |
 | 20–21 | Replay dry-run, docs/tests | done |
+| — | Intrinsics for all three cameras, on real data | done |
+| — | Extrinsics for all three cameras, on real data | done |
 
-Every script is implemented and covered by tests — 467 of them, all passing on both the
+Every script is implemented and covered by tests — 472 of them, all passing on both the
 development laptop and the robot PC, none of which open a camera or a robot.
 
-**Hardware status.** The three cameras have been enumerated and opened for real on
-`ur12e-flexlab`, at their configured resolutions and frame rates, through the project's
-own code path. All three now have intrinsics (see the next section). What has **not**
-happened is anything involving the robot: no waypoint has been recorded, and the arm has
-not been driven by this software at all. The hand-eye solve, selection and validation
-stages remain exercised only against synthetic datasets and URSim.
+**Hardware status.** All three cameras have intrinsics and extrinsics solved from
+real data on `ur12e-flexlab`: 30 hand-eye waypoints each, 90 in total, with the
+solve, selection and validation stages exercised against those rather than against
+synthetic datasets. See *Where the extrinsics stand* for the numbers.
+
+The arm has still **never been driven by this software**. Every waypoint was
+collected with `--read-only`, posed by hand in freedrive, with `allow_motion` false
+throughout; the software read the robot's measured state and never commanded it.
+`allow_physical_robot` was opened for those read-only sessions, which is why
+`config/safety.yaml` on the robot PC differs from the locked-down file this
+repository ships.
 
 Motion code now exists — `jog_controller.py`, `robot_interface.enable_motion()` and the
 teleop scripts can command the arm. It is inert until you change `config/safety.yaml`
@@ -43,7 +50,7 @@ teleop scripts can command the arm. It is inert until you change `config/safety.
 
 ## What to do next
 
-All three cameras now have intrinsics. Everything below runs on the robot PC, in
+All three cameras are fully calibrated. Everything below runs on the robot PC, in
 `~/camera_calibration`.
 
 ### Where the intrinsics stand
@@ -88,7 +95,46 @@ n=15 spreads 10.7 px (1.2%); reality is nearer 0.5%. camera_3 is better conditio
 (leave-one-out spread 2.78 px vs 6.80) because its tilt range ran to 58° rather than 38°.
 If camera_2's hold-out validation disappoints later, suspect `fx` first and add tilt.
 
-### Next: extrinsics
+### Where the extrinsics stand
+
+All three are solved, from 30 waypoints each. The shipped result for every camera is
+`data/<camera>/handeye/final_result_all_30.yaml`.
+
+| Camera | Mounting | Solves | Accuracy | Median distance / tilt |
+|---|---|---|---|---|
+| `camera_1` | eye_in_hand | `T_flange_camera` | **0.80 mm** | 0.47 m / 42.4° |
+| `camera_2` | eye_to_hand | `T_base_camera` | **2.04 mm** | 0.93 m / 31.1° |
+| `camera_3` | eye_to_hand | `T_base_camera` | **2.68 mm** | 0.98 m / 23.9° |
+
+Those accuracies are **10-fold cross-validated**, not the hold-out figures the solver
+prints. The shipped `best_20` hold-out is not a hold-out in the usual sense: the ten
+"held-out" waypoints are exactly the ten selection discarded, so they are the worst by
+construction and the number reads pessimistically. camera_2's best-20 fit scored
+3.26 px / 4.22 mm that way against a true 0.89 px / 2.04 mm.
+
+Three findings worth carrying into any re-run:
+
+**The pixel gate ranks cameras backwards.** Chain reprojection is scale-dependent:
+1 px is 0.72 mm at camera_1's working distance and 1.08 mm at camera_3's. Depth error
+along the viewing ray barely reaches the image, so the camera that sits further out
+looks better in pixels while being worse in millimetres. Judge in mm at the board.
+The same argument is why `outlier_limits.max_reprojection_rms_px` had to move.
+
+**"The five solver methods disagree by up to 26 mm" is `andreff` alone.** Excluding it,
+the other four agree to 2.60 mm on camera_2 and 2.75 mm on camera_3. Read the spread
+without `andreff` before suspecting degenerate poses; on this rig they never were.
+
+**Selection earned its keep once and then stopped.** Refitting both policies inside
+each fold and scoring them on the same held-out waypoints, using every waypoint beat
+MAD-based selection on all three cameras. The MAD rule is relative, so it tightens as
+the data improves and starts discarding usable geometry rather than noise. Hence
+`--selection all`; the `best_20` results are kept beside the shipped ones for comparison.
+
+`camera_1` is the most accurate despite running on factory intrinsics with no
+reprojection error of its own, because it works at half the distance with the widest
+tilt spread. Working distance and tilt outweighed the intrinsics source.
+
+### Re-running the extrinsics
 
 Board is on the flange, which is what `camera_2` and `camera_3` need. Do those two first,
 then re-rig to the table for `camera_1` — one board move instead of two.
