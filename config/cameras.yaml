@@ -65,9 +65,9 @@ cameras:
     backend: realsense
     serial: "260522273667"          # verified on ur12e-flexlab 2026-09-15
     model: D405
-    width: 1280
-    height: 720
-    fps: 30                         # USB 3.2 link; 720p30 confirmed available
+    width: 640
+    height: 480
+    fps: 30                         # 640x480 is a 30 fps mode on all three
     # Per-camera override of calibration.yaml -> handeye.mode.
     handeye_mode: eye_in_hand
     description: "D405 on the robot wrist / end effector"
@@ -77,14 +77,14 @@ cameras:
     backend: realsense
     serial: "327122073926"          # verified on ur12e-flexlab 2026-09-15
     model: D435IF
-    width: 1280
-    height: 720
+    width: 640
+    height: 480
     # 15, NOT 30. This camera negotiates a USB 2.1 link, where librealsense
     # offers 1280x720 only at 15/10/6 Hz -- one 720p RGB8 stream is already
     # ~41 MB/s, at USB 2.0's practical ceiling. Asking for 30 fails to open.
     # Harmless for calibration (every capture is a static frame). Raise to 30
     # only after this camera is moved to a USB 3 port with a USB 3 cable.
-    fps: 15
+    fps: 30
     handeye_mode: eye_to_hand
     description: "D435IF fixed at the side of the workcell; slot confirmed 2026-09-22; USB 2.1, sysfs 3-12 -> /dev/video12; physical side not yet recorded"
 
@@ -93,12 +93,12 @@ cameras:
     backend: realsense
     serial: "327122075735"          # verified on ur12e-flexlab 2026-09-15
     model: D435IF
-    width: 1280
-    height: 720
+    width: 640
+    height: 480
     # See camera_2. Same USB 2.1 limit, and this one sits BEHIND A HUB
     # (sysfs 3-13.4), sharing that bus. Do not try to stream it at the same
     # time as camera_2 -- one 720p stream saturates the bus on its own.
-    fps: 15
+    fps: 30
     handeye_mode: eye_to_hand
     description: "D435IF fixed at the side of the workcell; slot confirmed 2026-09-22; USB 2.1 behind hub, sysfs 3-13.4 -> /dev/video6; physical side not yet recorded"
 
