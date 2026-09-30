@@ -860,8 +860,9 @@ data/camera_1/
 deletes images or metadata. Re-running a collection does not silently overwrite an existing
 session — you are asked, or the old one is moved to `handeye/sessions/<timestamp>/`.
 
-Captured images are gitignored (`data/**/images/*.png`); the directory skeleton and all
-YAML metadata are tracked. Run logs go to `logs/`, one file per run, and are not tracked.
+Captured images and verification overlays are tracked along with all YAML metadata
+(about 520 MB of PNGs as of 2026-09-30), so the fits can be re-run or audited without the
+robot PC. Run logs go to `logs/`, one file per run, and are not tracked.
 
 ---
 
