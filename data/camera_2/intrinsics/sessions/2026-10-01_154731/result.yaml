@@ -1,0 +1,74 @@
+# BLENDED intrinsics for camera_2 (serial 327122073926).
+# Camera matrix and distortion come from different solves; see the
+# `blend` block below for which, and why. Nothing here was refitted.
+image_width: 640
+image_height: 480
+camera_matrix:
+- - 607.2200641121351
+  - 0.0
+  - 331.09142164744105
+- - 0.0
+  - 608.4456081987049
+  - 255.07064346927933
+- - 0.0
+  - 0.0
+  - 1.0
+camera_name: camera_2
+camera_serial: '327122073926'
+board:
+  tag_family: tag36h11
+  rows: 6
+  columns: 4
+  tag_size_m: 0.028
+  tag_spacing_m: 0.0084
+  first_tag_id: 0
+  verified_by_user: true
+observation_count: 30
+distortion_model: standard
+rms_reprojection_error_px: 0.36317048337655716
+mean_reprojection_error_px: 0.30417788769784304
+median_reprojection_error_px: 0.26556326540790587
+max_reprojection_error_px: 1.466605790209726
+total_points: 2872
+field_of_view_deg:
+  horizontal: 55.57772649083838
+  vertical: 43.05328726709749
+principal_point_offset_px:
+  x: 11.091421647441052
+  y: 15.070643469279332
+aspect_ratio: 1.002018286547171
+fx: 607.2200641121351
+fy: 608.4456081987049
+cx: 331.09142164744105
+cy: 255.07064346927933
+distortion_coefficients:
+- 0.15675576727601268
+- -0.5040102100102966
+- 0.005353365703038528
+- 0.0003385986613904735
+- 0.4845345863506629
+timestamp: '2026-09-29T22:23:48.045+00:00'
+source: blended
+blend:
+  camera_matrix_from:
+    file: /home/robot2026fall/camera_calibration/data/camera_2/intrinsics/result.yaml
+    resolution:
+    - 640
+    - 480
+    source: solved
+    observation_count: 30
+    rms_reprojection_error_px: 0.36317048337655716
+    timestamp: '2026-09-29T22:07:33.969+00:00'
+  distortion_from:
+    file: data/camera_2/intrinsics/sessions/2026-09-29_144120/result.yaml
+    resolution:
+    - 1280
+    - 720
+    source: solved
+    observation_count: 30
+    rms_reprojection_error_px: 0.2743270591834559
+    timestamp: '2026-09-24T20:33:37.337+00:00'
+  reason: 640x480 crops 25% horizontally off 1280x720, halving the corners beyond 0.7r; check_distortion.py
+    returns INCONCLUSIVE at 480p for both D435IFs, while the 720p solves agreed across two units to ~4%
+  note: Nothing was refitted. fx, fy, cx and cy are in pixels and belong to the resolution they were measured
+    at; the distortion coefficients act on normalised coordinates and do not.

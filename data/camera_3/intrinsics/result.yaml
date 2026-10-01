@@ -1,15 +1,14 @@
-# BLENDED intrinsics for camera_3 (serial 327122075735).
-# Camera matrix and distortion come from different solves; see the
-# `blend` block below for which, and why. Nothing here was refitted.
+# Intrinsics for camera_3 (serial 327122075735).
+# Camera matrix and distortion derived from the 1280x720 solve; see `derived`.
 image_width: 640
 image_height: 480
 camera_matrix:
-- - 614.8015986570812
+- - 609.1870556440969
   - 0.0
-  - 326.2477601197115
+  - 332.18983725744914
 - - 0.0
-  - 615.2190048065
-  - 241.6707335941726
+  - 608.2640978390745
+  - 253.81412767766903
 - - 0.0
   - 0.0
   - 1.0
@@ -25,50 +24,40 @@ board:
   verified_by_user: true
 observation_count: 30
 distortion_model: standard
-rms_reprojection_error_px: 0.42027016087648134
-mean_reprojection_error_px: 0.36584888214562195
-median_reprojection_error_px: 0.33572944756288914
-max_reprojection_error_px: 1.453980509248729
+rms_reprojection_error_px: 0.43439180004997635
+mean_reprojection_error_px: 0.3771744116428848
+median_reprojection_error_px: 0.3396017853963813
+max_reprojection_error_px: 1.4609858354044751
 total_points: 2860
 field_of_view_deg:
-  horizontal: 54.9933339398952
-  vertical: 42.62200890542223
+  horizontal: 55.425013091562285
+  vertical: 43.06495886947771
 principal_point_offset_px:
-  x: 6.247760119711472
-  y: 1.6707335941725887
-aspect_ratio: 1.0006789282108741
-fx: 614.8015986570812
-fy: 615.2190048065
-cx: 326.2477601197115
-cy: 241.6707335941726
+  x: 12.189837257449142
+  y: 13.814127677669035
+aspect_ratio: 0.9984849352978347
+fx: 609.1870556440969
+fy: 608.2640978390745
+cx: 332.18983725744914
+cy: 253.81412767766903
 distortion_coefficients:
 - 0.14722479204198202
 - -0.4851447619373286
 - 0.0029970243767067197
 - 0.0028379012653395254
 - 0.46622635857003913
-timestamp: '2026-09-29T22:24:04.775+00:00'
-source: blended
-blend:
-  camera_matrix_from:
-    file: /home/robot2026fall/camera_calibration/data/camera_3/intrinsics/result.yaml
-    resolution:
-    - 640
-    - 480
-    source: solved
-    observation_count: 30
-    rms_reprojection_error_px: 0.42027016087648134
-    timestamp: '2026-09-29T22:07:34.415+00:00'
+timestamp: '2026-10-01T22:47:29.405+00:00'
+source: derived_from_720p
+derived:
   distortion_from:
     file: data/camera_3/intrinsics/sessions/2026-09-29_145536/result.yaml
     resolution:
     - 1280
     - 720
-    source: solved
-    observation_count: 30
-    rms_reprojection_error_px: 0.3904692826991663
     timestamp: '2026-09-24T20:52:47.606+00:00'
-  reason: 640x480 crops 25% horizontally off 1280x720, halving the corners beyond 0.7r; check_distortion.py
-    returns INCONCLUSIVE at 480p for both D435IFs, while the 720p solves agreed across two units to ~4%
-  note: Nothing was refitted. fx, fy, cx and cy are in pixels and belong to the resolution they were measured
-    at; the distortion coefficients act on normalised coordinates and do not.
+  observations_from: /home/li1013/camera_calibration/data/camera_3/intrinsics/observations
+  replaces: /home/li1013/camera_calibration/data/camera_3/intrinsics/sessions/2026-10-01_154729/result.yaml
+  reason: RealSense colour 640x480 is the centred 1440x1080 crop of the 1920x1080 sensor image scaled
+    by 4/9, and 1280x720 is the full image scaled by 2/3; the factory intrinsics of these units satisfy
+    this exactly. Mapping the 720p solve keeps its camera matrix and distortion as the consistent pair
+    they were fitted as, with the full field of view constraining the distortion
