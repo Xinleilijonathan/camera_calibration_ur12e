@@ -1,0 +1,586 @@
+# FINAL hand-eye calibration for camera_3 (serial 327122075735).
+# Mounting: eye_to_hand. T_base_camera: camera pose expressed in the robot base frame.
+# Fitted on 35 waypoints; 0 held out for validation.
+label: final_all_35
+timestamp: '2026-10-01T22:47:30.804+00:00'
+mode: eye_to_hand
+method: park
+observation_count: 35
+waypoint_numbers:
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+- 7
+- 8
+- 9
+- 10
+- 11
+- 12
+- 13
+- 14
+- 15
+- 16
+- 17
+- 18
+- 19
+- 20
+- 21
+- 22
+- 23
+- 24
+- 25
+- 26
+- 27
+- 28
+- 29
+- 30
+- 31
+- 32
+- 33
+- 34
+- 35
+transform:
+- - -0.855996944484729
+  - 0.12077760806213715
+  - 0.5026748456244825
+  - -0.07258377282733525
+- - -0.5141846940232867
+  - -0.09790561707506709
+  - -0.8520731133989211
+  - 0.9014176840497431
+- - -0.05369666158140127
+  - -0.9878396932376928
+  - 0.1459089065104444
+  - 0.207593443008396
+- - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+rotation_matrix:
+- - -0.855996944484729
+  - 0.12077760806213715
+  - 0.5026748456244825
+- - -0.5141846940232867
+  - -0.09790561707506709
+  - -0.8520731133989211
+- - -0.05369666158140127
+  - -0.9878396932376928
+  - 0.1459089065104444
+rotation_vector:
+- -0.4286693202861539
+- 1.7566870735327922
+- -2.0048296036147057
+rotation_angle_deg: 154.68850968843742
+translation_m:
+- -0.07258377282733525
+- 0.9014176840497431
+- 0.207593443008396
+translation_mm:
+- -72.58377282733525
+- 901.4176840497431
+- 207.593443008396
+transform_meaning: 'T_base_camera: camera pose expressed in the robot base frame'
+reference_constant_transform:
+- - -0.00034339225505199394
+  - -0.015657175645918935
+  - 0.9998773599459844
+  - -0.0011935051572591338
+- - -0.04662190980311519
+  - -0.9987899089501618
+  - -0.01565615871269652
+  - 0.11113934850076558
+- - 0.9989125485286828
+  - -0.04662156829322433
+  - -0.00038699071157796087
+  - 0.17848583830444525
+- - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+reference_meaning: 'T_flange_board: the board''s pose on the robot flange'
+translation_residual_mm:
+  count: 35
+  mean: 2.4486085481723996
+  median: 2.3135754507673703
+  rms: 2.8538394880362374
+  max: 7.056016309122322
+  min: 0.548493336926287
+  std: 1.4658499245461607
+rotation_residual_deg:
+  count: 35
+  mean: 0.47778119678158687
+  median: 0.396841536270265
+  rms: 0.5744781141678656
+  max: 1.7270523352042944
+  min: 0.09775713786208408
+  std: 0.3189831212773207
+reprojection_px:
+  count: 2712
+  mean: 0.8421402787619201
+  median: 0.6582300953686424
+  rms: 1.1102545856981723
+  max: 5.5717797037861505
+  min: 0.011940590840559614
+  std: 0.7235088084817045
+per_waypoint:
+- number: 1
+  translation_residual_mm: 0.7524845894659369
+  rotation_residual_deg: 0.7627996246968524
+  points: 92
+  mean_px: 0.3007076002082639
+  rms_px: 0.33540639545921996
+  max_px: 0.717050509656151
+- number: 2
+  translation_residual_mm: 2.9908849675625797
+  rotation_residual_deg: 0.6975452719810545
+  points: 72
+  mean_px: 0.2723014889459565
+  rms_px: 0.30842135117812103
+  max_px: 0.8458338988999351
+- number: 3
+  translation_residual_mm: 0.8305276879062031
+  rotation_residual_deg: 0.3945998711933746
+  points: 88
+  mean_px: 0.4577746052329543
+  rms_px: 0.49943888447493684
+  max_px: 0.9859319256336259
+- number: 4
+  translation_residual_mm: 1.102932542630756
+  rotation_residual_deg: 0.21305109940752479
+  points: 72
+  mean_px: 0.518878691447954
+  rms_px: 0.5599223590862843
+  max_px: 1.0338997028758914
+- number: 5
+  translation_residual_mm: 2.8397626378440326
+  rotation_residual_deg: 0.8183419714777493
+  points: 64
+  mean_px: 0.4607716858558895
+  rms_px: 0.5161661084477106
+  max_px: 1.0406890790757484
+- number: 6
+  translation_residual_mm: 3.031514616975002
+  rotation_residual_deg: 0.7562608497472367
+  points: 56
+  mean_px: 0.4332744635274986
+  rms_px: 0.4776787608270888
+  max_px: 1.0359055400543449
+- number: 7
+  translation_residual_mm: 0.548493336926287
+  rotation_residual_deg: 0.5328671909717072
+  points: 84
+  mean_px: 0.33896109447735384
+  rms_px: 0.37729426452329634
+  max_px: 0.7505071135644525
+- number: 8
+  translation_residual_mm: 2.714697211427487
+  rotation_residual_deg: 0.713920349859851
+  points: 60
+  mean_px: 0.2763040522976354
+  rms_px: 0.3112498122782526
+  max_px: 0.7004168457344028
+- number: 9
+  translation_residual_mm: 1.2722557039090194
+  rotation_residual_deg: 0.45277154440334844
+  points: 88
+  mean_px: 0.6815577131443525
+  rms_px: 0.7226100866347182
+  max_px: 1.1567992412281052
+- number: 10
+  translation_residual_mm: 2.6047061162172307
+  rotation_residual_deg: 0.7436977917603952
+  points: 56
+  mean_px: 0.4088758319053979
+  rms_px: 0.4529696831525219
+  max_px: 0.8798718778930429
+- number: 11
+  translation_residual_mm: 1.895397217043574
+  rotation_residual_deg: 0.8925371632699285
+  points: 72
+  mean_px: 0.2761442760777462
+  rms_px: 0.3096862799795357
+  max_px: 0.5972238482131456
+- number: 12
+  translation_residual_mm: 4.240032907060121
+  rotation_residual_deg: 1.7270523352042944
+  points: 76
+  mean_px: 0.35122167673153337
+  rms_px: 0.400804332128055
+  max_px: 0.9101779211857737
+- number: 13
+  translation_residual_mm: 2.4310640856907098
+  rotation_residual_deg: 0.7999031818088858
+  points: 68
+  mean_px: 0.7150911474794157
+  rms_px: 0.7766908718848293
+  max_px: 1.4882866210600454
+- number: 14
+  translation_residual_mm: 4.12096942247382
+  rotation_residual_deg: 0.396841536270265
+  points: 84
+  mean_px: 0.49953697078913994
+  rms_px: 0.5498262671405163
+  max_px: 0.9717397533634006
+- number: 15
+  translation_residual_mm: 1.5247858222133037
+  rotation_residual_deg: 0.21590090027040928
+  points: 64
+  mean_px: 0.5529945325832486
+  rms_px: 0.5976264843688058
+  max_px: 1.0858641080764433
+- number: 16
+  translation_residual_mm: 1.813185831667348
+  rotation_residual_deg: 0.16499311519992102
+  points: 64
+  mean_px: 0.7877857975706648
+  rms_px: 0.8266497764530656
+  max_px: 1.258474124701574
+- number: 17
+  translation_residual_mm: 2.6811135296947435
+  rotation_residual_deg: 0.6251157710293104
+  points: 92
+  mean_px: 0.4847286491427414
+  rms_px: 0.5253977579838617
+  max_px: 1.0500863630044992
+- number: 18
+  translation_residual_mm: 3.8939596259986264
+  rotation_residual_deg: 0.33987095782286897
+  points: 96
+  mean_px: 0.5533845775164702
+  rms_px: 0.6054878589442871
+  max_px: 1.1177941241056482
+- number: 19
+  translation_residual_mm: 4.18135507953932
+  rotation_residual_deg: 0.33506194414236334
+  points: 88
+  mean_px: 0.3803214314654499
+  rms_px: 0.4362991553149261
+  max_px: 1.1117656943351908
+- number: 20
+  translation_residual_mm: 0.9628177090768737
+  rotation_residual_deg: 0.4468046198752514
+  points: 68
+  mean_px: 0.6695726361596077
+  rms_px: 0.7078317802041952
+  max_px: 1.1236603786099624
+- number: 21
+  translation_residual_mm: 1.237148043683432
+  rotation_residual_deg: 0.19001618722749983
+  points: 56
+  mean_px: 0.819907672275983
+  rms_px: 0.8551817707549235
+  max_px: 1.2952735906696742
+- number: 22
+  translation_residual_mm: 1.0216224951695607
+  rotation_residual_deg: 0.30996194372235514
+  points: 76
+  mean_px: 0.6854738458604569
+  rms_px: 0.7163836918827412
+  max_px: 1.0542441962704627
+- number: 23
+  translation_residual_mm: 3.8453155417138656
+  rotation_residual_deg: 0.16570478166663552
+  points: 92
+  mean_px: 2.0742331535156935
+  rms_px: 2.140590825116419
+  max_px: 3.2068256395067456
+- number: 24
+  translation_residual_mm: 2.0007755332489845
+  rotation_residual_deg: 0.14377170666532038
+  points: 56
+  mean_px: 1.0229058944841238
+  rms_px: 1.0459706658069132
+  max_px: 1.520130603962187
+- number: 25
+  translation_residual_mm: 7.056016309122322
+  rotation_residual_deg: 0.8059975696793827
+  points: 48
+  mean_px: 1.3177899881328619
+  rms_px: 1.3841199696532478
+  max_px: 3.49332129760718
+- number: 26
+  translation_residual_mm: 2.6715230574448254
+  rotation_residual_deg: 0.14530424437795497
+  points: 60
+  mean_px: 1.2033068894229535
+  rms_px: 1.2295740190802362
+  max_px: 1.9543337381139994
+- number: 27
+  translation_residual_mm: 4.746974086025453
+  rotation_residual_deg: 0.507000578845374
+  points: 92
+  mean_px: 2.259660734988642
+  rms_px: 2.3196649870014316
+  max_px: 3.510478992869109
+- number: 28
+  translation_residual_mm: 1.8316122556325767
+  rotation_residual_deg: 0.5793426703623288
+  points: 96
+  mean_px: 1.0890407687160844
+  rms_px: 1.1197882250898703
+  max_px: 1.6940971062101038
+- number: 29
+  translation_residual_mm: 2.6082071491533063
+  rotation_residual_deg: 0.24229065526039026
+  points: 96
+  mean_px: 0.6311384102176993
+  rms_px: 0.6990335326081374
+  max_px: 1.4538208975318667
+- number: 30
+  translation_residual_mm: 1.3586989041792457
+  rotation_residual_deg: 0.09775713786208408
+  points: 84
+  mean_px: 1.0913644226630235
+  rms_px: 1.1162799562453054
+  max_px: 1.5229720423330495
+- number: 31
+  translation_residual_mm: 0.7866226411797074
+  rotation_residual_deg: 0.30568114634042065
+  points: 84
+  mean_px: 0.6981304669487061
+  rms_px: 0.7381187599392969
+  max_px: 1.2029721026930855
+- number: 32
+  translation_residual_mm: 0.7179522629510782
+  rotation_residual_deg: 0.2880307636901166
+  points: 92
+  mean_px: 0.6949328921040023
+  rms_px: 0.7282904917430859
+  max_px: 1.1563457267976445
+- number: 33
+  translation_residual_mm: 5.1407540854247635
+  rotation_residual_deg: 0.40462143951610474
+  points: 96
+  mean_px: 3.1243917061723487
+  rms_px: 3.2904839758086584
+  max_px: 5.5717797037861505
+- number: 34
+  translation_residual_mm: 1.9315607290145262
+  rotation_residual_deg: 0.3926061505490944
+  points: 96
+  mean_px: 1.3699903263814315
+  rms_px: 1.4084822636230139
+  max_px: 2.0504700671273155
+- number: 35
+  translation_residual_mm: 2.3135754507673703
+  rotation_residual_deg: 0.1143178211978852
+  points: 84
+  mean_px: 0.9200864785035053
+  rms_px: 0.9500476629972662
+  max_px: 1.4459630204933935
+cross_check:
+  solutions:
+    andreff:
+    - - -0.855957591433727
+      - 0.1209365906012016
+      - 0.5027036330888504
+      - -0.06362252586614858
+    - - -0.5142359229294725
+      - -0.0978907768360348
+      - -0.8520439022605059
+      - 0.884492028443947
+    - - -0.05383323542056437
+      - -0.9878217130961409
+      - 0.14598029284790154
+      - 0.21408513627982195
+    - - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    daniilidis:
+    - - -0.8561472751292674
+      - 0.12076610346009217
+      - 0.5024215277471663
+      - -0.07296143777184554
+    - - -0.5138396165832976
+      - -0.09624161782020202
+      - -0.8524707616269778
+      - 0.900787111789488
+    - - -0.05459571153726231
+      - -0.988004604875107
+      - 0.14445140714899118
+      - 0.20906172628149433
+    - - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    horaud:
+    - - -0.8560059077451476
+      - 0.12084208029162533
+      - 0.5026440863436054
+      - -0.0725746598096289
+    - - -0.5141638327338797
+      - -0.09791070296741788
+      - -0.8520851174341874
+      - 0.9014190554306231
+    - - -0.05375350233996312
+      - -0.9878313043608297
+      - 0.1459447673298676
+      - 0.2075886671888894
+    - - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    park:
+    - - -0.855996944484729
+      - 0.12077760806213715
+      - 0.5026748456244825
+      - -0.07258377282733525
+    - - -0.5141846940232867
+      - -0.09790561707506709
+      - -0.8520731133989211
+      - 0.9014176840497431
+    - - -0.05369666158140127
+      - -0.9878396932376928
+      - 0.1459089065104444
+      - 0.207593443008396
+    - - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    tsai:
+    - - -0.8561320178466341
+      - 0.12218865322304634
+      - 0.5021034764283043
+      - -0.07234698203184128
+    - - -0.5136269658628534
+      - -0.09442463708113857
+      - -0.8528020449381055
+      - 0.9017822784939293
+    - - -0.05679179479792634
+      - -0.9880050207036568
+      - 0.14359934229653293
+      - 0.20838518814048107
+    - - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  translations_mm:
+    andreff:
+    - -63.622525866148585
+    - 884.492028443947
+    - 214.08513627982194
+    daniilidis:
+    - -72.96143777184554
+    - 900.787111789488
+    - 209.06172628149434
+    horaud:
+    - -72.57465980962891
+    - 901.4190554306231
+    - 207.58866718888942
+    park:
+    - -72.58377282733525
+    - 901.4176840497431
+    - 207.593443008396
+    tsai:
+    - -72.34698203184128
+    - 901.7822784939293
+    - 208.38518814048106
+  failures: {}
+  spread:
+    max_translation_difference_mm: 20.221865549836643
+    mean_translation_difference_mm: 8.653236024715088
+    max_rotation_difference_deg: 0.22277925095933718
+    mean_rotation_difference_deg: 0.1119947765971486
+warnings:
+- The five solver methods disagree by up to 20.2 mm. That is a strong sign of degenerate poses or a wrong
+  eye-in-hand/eye-to-hand mode
+camera_name: camera_3
+camera_serial: '327122075735'
+handeye_mode: eye_to_hand
+selection: all
+selected_waypoints:
+- waypoint_001
+- waypoint_002
+- waypoint_003
+- waypoint_004
+- waypoint_005
+- waypoint_006
+- waypoint_007
+- waypoint_008
+- waypoint_009
+- waypoint_010
+- waypoint_011
+- waypoint_012
+- waypoint_013
+- waypoint_014
+- waypoint_015
+- waypoint_016
+- waypoint_017
+- waypoint_018
+- waypoint_019
+- waypoint_020
+- waypoint_021
+- waypoint_022
+- waypoint_023
+- waypoint_024
+- waypoint_025
+- waypoint_026
+- waypoint_027
+- waypoint_028
+- waypoint_029
+- waypoint_030
+- waypoint_031
+- waypoint_032
+- waypoint_033
+- waypoint_034
+- waypoint_035
+selected_numbers:
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+- 7
+- 8
+- 9
+- 10
+- 11
+- 12
+- 13
+- 14
+- 15
+- 16
+- 17
+- 18
+- 19
+- 20
+- 21
+- 22
+- 23
+- 24
+- 25
+- 26
+- 27
+- 28
+- 29
+- 30
+- 31
+- 32
+- 33
+- 34
+- 35
+holdout_waypoints: []
+holdout_numbers: []
+intrinsics_file: /home/li1013/camera_calibration/data/camera_3/intrinsics/result.yaml
+intrinsics_rms_px: 0.43439180004997635
+board:
+  tag_family: tag36h11
+  rows: 6
+  columns: 4
+  tag_size_m: 0.028
+  tag_spacing_m: 0.0084
+  first_tag_id: 0
+  verified_by_user: true
+validation: null
+comparison_with_all: null
+environment:
+  python: 3.12.14
+  platform: Linux-6.8.0-138-generic-x86_64-with-glibc2.35
+  numpy: 2.5.3
+  opencv: 4.14.0
+  scipy: 1.18.1

@@ -1,0 +1,71 @@
+# Calibration centre for this session. Every recorded waypoint's
+# joint_delta_from_center is measured against this pose.
+camera: camera_3
+camera_serial: '327122075735'
+timestamp: '2026-10-01T22:31:31.831+00:00'
+actual_q_rad:
+- 1.1442055702209473
+- -0.3904739183238526
+- -1.8276894092559814
+- -1.9583012066283167
+- 1.1464430093765259
+- 0.2805553376674652
+actual_q_deg:
+- 65.55815006902003
+- -22.372507529892772
+- -104.7188894111264
+- -112.2023941551791
+- 65.686345889552
+- 16.074636768213445
+actual_q_named:
+  base: 1.1442055702209473
+  shoulder: -0.3904739183238526
+  elbow: -1.8276894092559814
+  wrist_1: -1.9583012066283167
+  wrist_2: 1.1464430093765259
+  wrist_3: 0.2805553376674652
+actual_tcp:
+- 0.1747306117927957
+- -0.15160124623190968
+- 0.8410248555656381
+- -2.3609277209873736
+- 1.0363914587726732
+- -0.6116756920273339
+actual_tcp_named:
+  x: 0.1747306117927957
+  y: -0.15160124623190968
+  z: 0.8410248555656381
+  rx: -2.3609277209873736
+  ry: 1.0363914587726732
+  rz: -0.6116756920273339
+  rotation_representation: axis-angle rotation vector (NOT rpy)
+robot_mode: 7
+safety_mode: 1
+environment:
+  python: 3.12.14
+  platform: Linux-6.8.0-138-generic-x86_64-with-glibc2.35
+  numpy: 2.5.3
+  opencv: 4.14.0
+  scipy: 1.18.1
+safety:
+  robot_ip: <redacted>
+  is_simulator: false
+  allow_physical_robot: true
+  allow_motion: true
+  joint_speed_rad_s: 0.15
+  joint_acceleration_rad_s2: 0.3
+  tcp_speed_m_s: 0.02
+  tcp_acceleration_m_s2: 0.05
+  max_joint_step_deg: 10.026761414789405
+  workspace_m:
+    x:
+    - -0.6
+    - 0.6
+    y:
+    - -0.6
+    - 0.6
+    z:
+    - 0.1
+    - 0.9
+  workspace_verified: true
+  joint_limits_verified: true
