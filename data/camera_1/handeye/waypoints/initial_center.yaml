@@ -48,7 +48,7 @@ environment:
   opencv: 4.14.0
   scipy: 1.18.1
 safety:
-  robot_ip: 10.18.1.106
+  robot_ip: <redacted>
   is_simulator: false
   allow_physical_robot: true
   allow_motion: false

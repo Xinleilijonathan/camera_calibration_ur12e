@@ -1,0 +1,24 @@
+# One-shot drift check of final_result_all_30.yaml for camera_3. Reads the robot; never commands it.
+camera_name: camera_3
+camera_serial: '327122075735'
+timestamp: '2026-10-01T21:23:05.811+00:00'
+result_file: /home/li1013/camera_calibration/data/camera_3/handeye/final_result_all_30.yaml
+handeye_mode: eye_to_hand
+tcp:
+- 0.3995448291929821
+- 0.47779732212792353
+- 0.6092530659584284
+- 2.463480544885153
+- -0.5272250669872739
+- -0.16792098075563552
+frames_used: 10
+frames_requested: 10
+board_distance_mm: 789.6894558302113
+board_tilt_deg: 36.76949264160686
+translation_mm: 13.733904602195153
+rotation_deg: 2.053261706154904
+mean_reprojection_px: 10.258147111630404
+pnp_spread_mm: 0.06032919556873308
+limit_mm: 3.0
+limit_deg: 1.0
+passed: false

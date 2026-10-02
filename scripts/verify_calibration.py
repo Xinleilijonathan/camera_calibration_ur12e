@@ -3,6 +3,7 @@
 
     python scripts/verify_calibration.py --camera camera_1
     python scripts/verify_calibration.py --camera camera_1 --live
+    python scripts/verify_calibration.py --camera camera_3 --once
 
 Offline mode replays every stored waypoint: it predicts where the board must
 appear given the robot pose and the solved transform, projects the board points
@@ -11,6 +12,12 @@ actually detected. Overlays are written to handeye/verification/.
 
 --live opens the camera and does the same thing against the current frame and
 the current robot pose. It reads the robot; it never commands it.
+
+--once is the non-interactive drift check: with the arm held still at one pose,
+it averages several frames, compares the board pose predicted by the
+calibration with the board pose measured by PnP, prints the error in mm and
+degrees at the board, saves a report and one overlay, and exits. It reads the
+robot; it never commands it.
 """
 from __future__ import annotations
 
@@ -24,10 +31,19 @@ import _bootstrap  # noqa: F401
 import _analysis
 import ui_overlay as ui
 
+from apriltag_detector import build_detector
 from calibration_utils import (CalibrationError, ConfigError, error_statistics,
-                               invert_transform, load_yaml, matrix_to_rotvec,
-                               save_yaml, setup_logging, timestamp_utc)
+                               invert_transform, load_yaml, make_transform,
+                               matrix_to_rotvec, pose_difference, pose_to_matrix,
+                               rotvec_to_matrix, save_yaml, setup_logging,
+                               timestamp_utc, transform_difference)
 from handeye_calibration import EYE_IN_HAND
+
+# --once refuses to measure while the arm is moving: the frame and the pose
+# would describe different instants.
+STILL_JOINT_SPEED_RAD_S = 1e-3
+STILL_TCP_DRIFT_M = 0.0005
+STILL_TCP_DRIFT_DEG = 0.1
 
 
 def predicted_board_in_camera(transform, robot_transform, reference, mode):
@@ -63,6 +79,15 @@ def main(argv=None) -> int:
                         help="result file to verify (default: final_result_best_20.yaml)")
     parser.add_argument("--live", action="store_true",
                         help="verify against the live camera and current robot pose")
+    parser.add_argument("--once", action="store_true",
+                        help="non-interactive drift check at the current pose: "
+                             "report mm/deg error at the board and exit")
+    parser.add_argument("--frames", type=int, default=10,
+                        help="frames averaged by --once (default 10)")
+    parser.add_argument("--max-mm", type=float, default=3.0,
+                        help="--once pass limit, translation at the board (default 3.0)")
+    parser.add_argument("--max-deg", type=float, default=1.0,
+                        help="--once pass limit, rotation at the board (default 1.0)")
     parser.add_argument("--no-images", action="store_true",
                         help="skip writing the per-waypoint overlay images")
     args = parser.parse_args(argv)
@@ -93,6 +118,8 @@ def main(argv=None) -> int:
     print(f"{result.get('transform_meaning', '')}")
     print()
 
+    if args.once:
+        return verify_once(context, transform, reference, mode, result_path, args)
     if args.live:
         return verify_live(context, transform, reference, mode, result_path)
 
@@ -214,6 +241,7 @@ def verify_live(context, transform, reference, mode, result_path) -> int:
     print()
 
     envelope = load_envelope()
+    detector = build_detector(context.calibration_config)
     camera = robot = None
     try:
         camera = open_camera(context.camera_config)
@@ -224,10 +252,10 @@ def verify_live(context, transform, reference, mode, result_path) -> int:
         while True:
             frame = camera.read(flush=0)
             state = robot.read_state()
-            detection = context.detector.process(
+            detection = detector.process(
                 frame.image, context.camera_matrix, context.dist_coeffs,
                 require_pose=True)
-            canvas = context.detector.annotate(
+            canvas = detector.annotate(
                 frame.image, detection, context.camera_matrix, context.dist_coeffs)
 
             lines = [(f"LIVE VERIFICATION -- {context.camera_name}", ui.WHITE, 0.6),
@@ -277,6 +305,142 @@ def verify_live(context, transform, reference, mode, result_path) -> int:
         if camera is not None:
             camera.close()
         cv2.destroyAllWindows()
+
+
+def verify_once(context, transform, reference, mode, result_path, args) -> int:
+    """Non-interactive drift check at the current, stationary pose."""
+    from camera_interface import open_camera
+    from robot_interface import RobotInterface
+    from safety import SafetyError, load_envelope
+
+    print("ONE-SHOT VERIFICATION. This reads the robot but never commands it.")
+    print("Hold the arm still with the board in view.")
+    print()
+
+    envelope = load_envelope()
+    detector = build_detector(context.calibration_config)
+    camera = robot = None
+    try:
+        camera = open_camera(context.camera_config)
+        robot = RobotInterface(envelope).connect()
+
+        before = robot.read_state()
+        if not before.connected or before.tcp is None:
+            print("ERROR: robot state unavailable.", file=sys.stderr)
+            return 1
+        if before.qd is not None and np.max(np.abs(before.qd)) > STILL_JOINT_SPEED_RAD_S:
+            print("ERROR: the arm is moving. Hold it still and run again.",
+                  file=sys.stderr)
+            return 1
+
+        detections, rejected = [], []
+        for _ in range(max(1, args.frames)):
+            frame = camera.read()
+            detection = detector.process(frame.image, context.camera_matrix,
+                                         context.dist_coeffs, require_pose=True)
+            if detection.valid and detection.has_pose:
+                detections.append((frame.image, detection))
+            else:
+                rejected.append(detection.reasons[0] if detection.reasons else "invalid")
+
+        after = robot.read_state()
+        drift_m, drift_deg = pose_difference(before.tcp, after.tcp)
+        if drift_m > STILL_TCP_DRIFT_M or drift_deg > STILL_TCP_DRIFT_DEG:
+            print(f"ERROR: the TCP moved {drift_m * 1000:.2f} mm / {drift_deg:.2f} deg "
+                  f"during the capture. Hold it still and run again.", file=sys.stderr)
+            return 1
+        if not detections:
+            print(f"ERROR: board not detected in any of {args.frames} frames "
+                  f"({rejected[0] if rejected else 'no frames'}).", file=sys.stderr)
+            return 1
+
+        predicted = predicted_board_in_camera(
+            transform, pose_to_matrix(after.tcp), reference, mode)
+        rows = []
+        for _, detection in detections:
+            measured = make_transform(rotvec_to_matrix(np.ravel(detection.rvec)),
+                                      np.ravel(detection.tvec))
+            translation_m, rotation_deg = transform_difference(predicted, measured)
+            projected, _ = cv2.projectPoints(
+                detection.object_points,
+                matrix_to_rotvec(predicted[:3, :3]).reshape(3, 1),
+                predicted[:3, 3].reshape(3, 1),
+                context.camera_matrix, context.dist_coeffs)
+            errors = np.linalg.norm(projected.reshape(-1, 2) - detection.image_points, axis=1)
+            rows.append({"translation_mm": translation_m * 1000,
+                         "rotation_deg": rotation_deg,
+                         "mean_px": float(np.mean(errors)),
+                         "measured_t_mm": np.ravel(detection.tvec) * 1000})
+
+        translation_mm = float(np.median([r["translation_mm"] for r in rows]))
+        rotation_deg = float(np.median([r["rotation_deg"] for r in rows]))
+        mean_px = float(np.median([r["mean_px"] for r in rows]))
+        pnp_spread_mm = float(np.max(np.std([r["measured_t_mm"] for r in rows], axis=0)))
+        image, detection = detections[-1]
+        passed = translation_mm <= args.max_mm and rotation_deg <= args.max_deg
+
+        print(f"Frames used : {len(rows)} of {args.frames}"
+              + (f"  (rejected: {', '.join(sorted(set(rejected)))})" if rejected else ""))
+        print(f"Board       : {detection.distance_m * 1000:.0f} mm from the camera, "
+              f"tilt {detection.tilt_deg:.1f} deg, {detection.tags_detected} tags")
+        print("TCP (m, rad): " + "  ".join(f"{v:.4f}" for v in after.tcp))
+        print()
+        print("Error at the board (median over frames):")
+        print(f"  translation {translation_mm:7.2f} mm   (limit {args.max_mm:.2f})")
+        print(f"  rotation    {rotation_deg:7.3f} deg  (limit {args.max_deg:.2f})")
+        print(f"  reprojection {mean_px:6.2f} px mean")
+        print(f"  PnP spread across frames {pnp_spread_mm:.2f} mm (measurement noise)")
+        print()
+        print(f"{'PASS' if passed else 'FAIL'}: "
+              f"{translation_mm:.2f} mm / {rotation_deg:.3f} deg "
+              f"{'within' if passed else 'exceeds'} {args.max_mm:.1f} mm / {args.max_deg:.1f} deg.")
+
+        stamp = timestamp_utc()
+        safe_stamp = stamp.replace(":", "").replace("-", "")
+        context.paths.verification.mkdir(parents=True, exist_ok=True)
+        report_path = context.paths.verification / f"once_{safe_stamp}.yaml"
+        save_yaml(report_path, {
+            "camera_name": context.camera_name,
+            "camera_serial": str(context.camera_config.get("serial", "")),
+            "timestamp": stamp,
+            "result_file": str(result_path),
+            "handeye_mode": mode,
+            "tcp": [float(v) for v in after.tcp],
+            "frames_used": len(rows), "frames_requested": int(args.frames),
+            "board_distance_mm": float(detection.distance_m * 1000),
+            "board_tilt_deg": float(detection.tilt_deg),
+            "translation_mm": translation_mm, "rotation_deg": rotation_deg,
+            "mean_reprojection_px": mean_px, "pnp_spread_mm": pnp_spread_mm,
+            "limit_mm": float(args.max_mm), "limit_deg": float(args.max_deg),
+            "passed": passed,
+        }, header=(f"One-shot drift check of {result_path.name} for "
+                   f"{context.camera_name}. Reads the robot; never commands it."))
+        print(f"Saved: {report_path}")
+        if not args.no_images:
+            projected, _ = cv2.projectPoints(
+                detection.object_points,
+                matrix_to_rotvec(predicted[:3, :3]).reshape(3, 1),
+                predicted[:3, 3].reshape(3, 1),
+                context.camera_matrix, context.dist_coeffs)
+            canvas = overlay(image, detection.object_points, detection.image_points,
+                             projected.reshape(-1, 2), [
+                                 (f"one-shot {'PASS' if passed else 'FAIL'}",
+                                  ui.WHITE, 0.6),
+                                 (f"{translation_mm:.2f} mm  {rotation_deg:.3f} deg",
+                                  ui.WHITE, 0.5),
+                                 (f"mean {mean_px:.2f} px", ui.GREY, 0.5)])
+            image_path = report_path.with_suffix(".png")
+            cv2.imwrite(str(image_path), canvas)
+            print(f"Overlay: {image_path}")
+        return 0 if passed else 1
+    except (SafetyError, RuntimeError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    finally:
+        if robot is not None:
+            robot.disconnect()
+        if camera is not None:
+            camera.close()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,62 @@
+# Intrinsics for camera_3 (serial 327122075735).
+# Camera matrix refitted at 640x480 with the distortion held fixed;
+# see the `refit` block.
+image_width: 640
+image_height: 480
+camera_matrix:
+- - 612.3785866969988
+  - 0.0
+  - 331.2757101162961
+- - 0.0
+  - 612.4727797215498
+  - 247.66668822937632
+- - 0.0
+  - 0.0
+  - 1.0
+camera_name: camera_3
+camera_serial: '327122075735'
+board:
+  tag_family: tag36h11
+  rows: 6
+  columns: 4
+  tag_size_m: 0.028
+  tag_spacing_m: 0.0084
+  first_tag_id: 0
+  verified_by_user: true
+observation_count: 30
+distortion_model: standard
+rms_reprojection_error_px: 0.42814346915442375
+mean_reprojection_error_px: 0.37243613600730896
+median_reprojection_error_px: 0.3382202088832855
+max_reprojection_error_px: 1.4123703241348267
+total_points: 2860
+field_of_view_deg:
+  horizontal: 55.17886678589327
+  vertical: 42.79587101984193
+principal_point_offset_px:
+  x: 11.275710116296125
+  y: 7.666688229376319
+aspect_ratio: 1.0001538150199847
+fx: 612.3785866969988
+fy: 612.4727797215498
+cx: 331.2757101162961
+cy: 247.66668822937632
+distortion_coefficients:
+- 0.14722479204198202
+- -0.4851447619373286
+- 0.0029970243767067197
+- 0.0028379012653395254
+- 0.46622635857003913
+timestamp: '2026-10-01T22:40:26.218+00:00'
+source: refit_fixed_distortion
+refit:
+  distortion_from:
+    file: data/camera_3/intrinsics/sessions/2026-09-29_145536/result.yaml
+    resolution:
+    - 1280
+    - 720
+    timestamp: '2026-09-24T20:52:47.606+00:00'
+  observations_from: /home/li1013/camera_calibration/data/camera_3/intrinsics/observations
+  replaces: /home/li1013/camera_calibration/data/camera_3/intrinsics/sessions/2026-10-01_154026/result.yaml
+  reason: the previous blend paired a camera matrix solved together with its own distortion with another
+    solve's distortion; refitting the matrix with that distortion held fixed makes the pair consistent
